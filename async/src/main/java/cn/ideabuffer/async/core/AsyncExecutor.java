@@ -9,15 +9,23 @@ import java.util.concurrent.*;
  */
 public class AsyncExecutor {
 
+    private static final int DEFAULT_KEEP_ALIVE_SECONDES = 60;
+
+    private static final int DEFAULT_CORE_POOL_SIZE = 16;
+
+    private static final int DEFAULT_MAX_POOL_SIZE = DEFAULT_CORE_POOL_SIZE;
+
+    private static final int DEFAULT_QUEUE_CAPACITY = Integer.MAX_VALUE;
+
     private final Object poolSizeMonitor = new Object();
 
-    private int corePoolSize = 16;
+    private int corePoolSize = DEFAULT_CORE_POOL_SIZE;
 
-    private int maxPoolSize = Integer.MAX_VALUE;
+    private int maxPoolSize = DEFAULT_MAX_POOL_SIZE;
 
-    private int keepAliveSeconds = 60;
+    private int keepAliveSeconds = DEFAULT_KEEP_ALIVE_SECONDES;
 
-    private int queueCapacity = Integer.MAX_VALUE;
+    private int queueCapacity = DEFAULT_QUEUE_CAPACITY;
 
     private RejectMode rejectMode = RejectMode.CALLER_RUN;
 
@@ -31,13 +39,24 @@ public class AsyncExecutor {
         init();
     }
 
-    public AsyncExecutor(int corePoolSize, int maxPoolSize, int queueCapacity,
-        RejectMode rejectMode) {
-        this.corePoolSize = corePoolSize;
-        this.maxPoolSize = maxPoolSize;
-        this.queueCapacity = queueCapacity;
-        this.rejectMode = rejectMode;
-        init();
+    public AsyncExecutor(int nThreads) {
+        this(nThreads, nThreads);
+    }
+
+    public AsyncExecutor(int corePoolSize, int maxPoolSize) {
+        this(corePoolSize, maxPoolSize, DEFAULT_QUEUE_CAPACITY);
+    }
+
+    public AsyncExecutor(int corePoolSize, int maxPoolSize, int queueCapacity) {
+        this(corePoolSize, maxPoolSize, queueCapacity, DEFAULT_KEEP_ALIVE_SECONDES);
+    }
+
+    public AsyncExecutor(int corePoolSize, int maxPoolSize, int queueCapacity, int keepAliveSeconds) {
+        this(corePoolSize, maxPoolSize, queueCapacity, keepAliveSeconds, RejectMode.CALLER_RUN);
+    }
+
+    public AsyncExecutor(int corePoolSize, int maxPoolSize, int queueCapacity, int keepAliveSeconds, RejectMode rejectMode) {
+        this(corePoolSize, maxPoolSize, queueCapacity, keepAliveSeconds, rejectMode, false);
     }
 
     public AsyncExecutor(int corePoolSize, int maxPoolSize, int keepAliveSeconds, int queueCapacity,
@@ -153,10 +172,10 @@ public class AsyncExecutor {
 
     protected BlockingQueue<Runnable> createQueue(int queueCapacity) {
         if (queueCapacity > 0) {
-            return new LinkedBlockingQueue<Runnable>(queueCapacity);
+            return new LinkedBlockingQueue<>(queueCapacity);
         }
         else {
-            return new SynchronousQueue<Runnable>();
+            return new SynchronousQueue<>();
         }
     }
 
