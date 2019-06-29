@@ -13,8 +13,8 @@ public class ThreadLocalTransmitter {
     private static final Field THREAD_LOCAL_FIELD = ReflectionUtils.findField(Thread.class, "threadLocals");
     private static final Field INHERITABLE_THREAD_LOCAL_FIELD = ReflectionUtils.findField(Thread.class,
         "inheritableThreadLocals");
+
     static {
-        // 强制的声明accessible
         ReflectionUtils.makeAccessible(THREAD_LOCAL_FIELD);
         ReflectionUtils.makeAccessible(INHERITABLE_THREAD_LOCAL_FIELD);
     }

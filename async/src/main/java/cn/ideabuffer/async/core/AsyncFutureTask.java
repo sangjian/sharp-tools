@@ -23,8 +23,6 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
 
     private volatile T value;
 
-    private AsyncCallable<T> callable;
-
     private AsyncCallback<T> callback;
 
     private long timeout;
@@ -47,7 +45,6 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
 
     public AsyncFutureTask(AsyncCallable<T> callable, AsyncCallback<T> callback) {
         super(callable);
-        this.callable = callable;
         this.timeout = callable.getTimeout();
         this.callerThread = Thread.currentThread();
         if (callback != null) {

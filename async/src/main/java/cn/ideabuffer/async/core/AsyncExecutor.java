@@ -4,6 +4,7 @@ import java.util.concurrent.*;
 
 /**
  * 异步执行器
+ *
  * @author sangjian.sj
  * @date 2019/06/18
  */
@@ -55,7 +56,8 @@ public class AsyncExecutor {
         this(corePoolSize, maxPoolSize, queueCapacity, keepAliveSeconds, RejectMode.CALLER_RUN);
     }
 
-    public AsyncExecutor(int corePoolSize, int maxPoolSize, int queueCapacity, int keepAliveSeconds, RejectMode rejectMode) {
+    public AsyncExecutor(int corePoolSize, int maxPoolSize, int queueCapacity, int keepAliveSeconds,
+        RejectMode rejectMode) {
         this(corePoolSize, maxPoolSize, queueCapacity, keepAliveSeconds, rejectMode, false);
     }
 
@@ -72,12 +74,12 @@ public class AsyncExecutor {
 
     private void init() {
 
-        if(inited) {
+        if (inited) {
             return;
         }
         BlockingQueue<Runnable> queue = createQueue(this.queueCapacity);
 
-        AsyncThreadPool executor  = new AsyncThreadPool(
+        AsyncThreadPool executor = new AsyncThreadPool(
             this.corePoolSize, this.maxPoolSize, this.keepAliveSeconds, TimeUnit.SECONDS,
             queue, new AsyncThreadFactory(), getHandler(rejectMode));
 
@@ -94,6 +96,12 @@ public class AsyncExecutor {
             : new ThreadPoolExecutor.AbortPolicy();
     }
 
+    public int getCorePoolSize() {
+        synchronized (this.poolSizeMonitor) {
+            return this.corePoolSize;
+        }
+    }
+
     public void setCorePoolSize(int corePoolSize) {
         synchronized (this.poolSizeMonitor) {
             this.corePoolSize = corePoolSize;
@@ -103,9 +111,9 @@ public class AsyncExecutor {
         }
     }
 
-    public int getCorePoolSize() {
+    public int getMaxPoolSize() {
         synchronized (this.poolSizeMonitor) {
-            return this.corePoolSize;
+            return this.maxPoolSize;
         }
     }
 
@@ -118,9 +126,9 @@ public class AsyncExecutor {
         }
     }
 
-    public int getMaxPoolSize() {
+    public int getKeepAliveSeconds() {
         synchronized (this.poolSizeMonitor) {
-            return this.maxPoolSize;
+            return this.keepAliveSeconds;
         }
     }
 
@@ -133,12 +141,6 @@ public class AsyncExecutor {
         }
     }
 
-    public int getKeepAliveSeconds() {
-        synchronized (this.poolSizeMonitor) {
-            return this.keepAliveSeconds;
-        }
-    }
-
     public void setQueueCapacity(int queueCapacity) {
         this.queueCapacity = queueCapacity;
     }
@@ -147,12 +149,12 @@ public class AsyncExecutor {
         this.allowCoreThreadTimeOut = allowCoreThreadTimeOut;
     }
 
-    public void setRejectMode(RejectMode rejectMode) {
-        this.rejectMode = rejectMode;
-    }
-
     public RejectMode getRejectMode() {
         return rejectMode;
+    }
+
+    public void setRejectMode(RejectMode rejectMode) {
+        this.rejectMode = rejectMode;
     }
 
     public <T> void execute(AsyncCallable<T> callable) {
@@ -173,8 +175,7 @@ public class AsyncExecutor {
     protected BlockingQueue<Runnable> createQueue(int queueCapacity) {
         if (queueCapacity > 0) {
             return new LinkedBlockingQueue<>(queueCapacity);
-        }
-        else {
+        } else {
             return new SynchronousQueue<>();
         }
     }

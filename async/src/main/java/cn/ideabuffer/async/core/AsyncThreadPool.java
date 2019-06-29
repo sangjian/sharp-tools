@@ -8,7 +8,6 @@ import java.util.concurrent.*;
  */
 public class AsyncThreadPool extends ThreadPoolExecutor {
 
-
     public AsyncThreadPool(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
         BlockingQueue<Runnable> workQueue) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
@@ -54,7 +53,7 @@ public class AsyncThreadPool extends ThreadPoolExecutor {
     protected void beforeExecute(Thread t, Runnable r) {
         // 执行之前复制ThreadLocal信息
         if (r instanceof AsyncFutureTask) {
-            AsyncFutureTask futureTask = (AsyncFutureTask) r;
+            AsyncFutureTask futureTask = (AsyncFutureTask)r;
             ThreadLocalTransmitter.copy(futureTask.getCallerThread(), t);
         }
 
