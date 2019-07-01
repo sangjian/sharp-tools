@@ -49,7 +49,7 @@ public class AsyncTemplateTest {
     }
 
     @Test
-    public void testNormalReturnTypeCallback() {
+    public void testNormalReturnTypeCallback() throws InterruptedException {
         User user = template.submit(new AsyncCallable<User>() {
 
             @Override
@@ -58,7 +58,7 @@ public class AsyncTemplateTest {
                 System.out.println("in call");
                 Thread.sleep(4000);
                 User user = new User("sangjian", 29);
-                throw new RuntimeException();
+                return user;
             }
 
             @Override
@@ -68,6 +68,12 @@ public class AsyncTemplateTest {
         }, new AsyncCallback<User>() {
             @Override
             public void onSuccess(User result) {
+                System.out.println("in callback");
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 System.out.println("callback success");
             }
 
@@ -76,13 +82,11 @@ public class AsyncTemplateTest {
                 System.out.println("callback failed");
             }
 
-            @Override
-            public void onTimeout(User result) {
-                System.out.println("callback timeout");
-            }
+
         }, User.class);
         System.out.println("submit finished");
         System.out.println(user.getName());
+        Thread.sleep(10000);
     }
 
     @Test
