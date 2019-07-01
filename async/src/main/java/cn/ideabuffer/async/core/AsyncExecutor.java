@@ -162,6 +162,7 @@ public class AsyncExecutor {
     }
 
     public <T> void execute(AsyncCallable<T> callable, AsyncCallback<T> callback) {
+        submit(callable, callback);
     }
 
     public <T> AsyncFutureTask<T> submit(AsyncCallable<T> callable) {
