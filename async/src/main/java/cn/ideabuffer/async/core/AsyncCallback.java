@@ -6,7 +6,7 @@ import java.util.concurrent.Callable;
  * @author sangjian.sj
  * @date 2019/06/18
  */
-public interface AsyncCallback<T> extends Callable<T> {
+public interface AsyncCallback<T> {
     /**
      * 执行成功回调方法
      */

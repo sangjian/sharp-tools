@@ -89,18 +89,21 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
             }
             endTime = System.currentTimeMillis();
             if (logger.isDebugEnabled()) {
-                logger.debug("invoking load time:{} timeout:{}, valueClass:{}", this.endTime - this.startTime, timeout, value.getClass());
+                logger.debug("invoking load time:{} timeout:{}, value:{}", this.endTime - this.startTime, timeout, value);
             }
         } catch (TimeoutException e) {
             super.cancel(true);
             throwable = e;
-            callbackContext.setTimeout(true);
         } catch (Exception e) {
             throwable = e;
-            callbackContext.setThrowable(e);
         }
         if(throwable != null) {
-            callbackContext.setThrowable(throwable);
+            if(shouldCallback()) {
+                callbackContext.setThrowable(throwable);
+            }
+            if(throwable instanceof TimeoutException) {
+                callbackContext.setTimeout(true);
+            }
             throw new AsyncException(throwable);
         }
         if(shouldCallback()) {

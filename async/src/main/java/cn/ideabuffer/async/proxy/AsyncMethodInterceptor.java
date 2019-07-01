@@ -34,7 +34,7 @@ public class AsyncMethodInterceptor implements MethodInterceptor {
 
         final AsyncMethod asyncMethod = AsyncProxyCache.getProxyMethod(methodKey);
 
-        if (asyncMethod == null || !AsyncProxyUtils.canProxyInvoke(method)) {
+        if (asyncMethod == null || !AsyncProxyUtils.canProxy(method.getReturnType())) {
             return methodProxy.invokeSuper(obj, args);
         }
 
@@ -46,8 +46,7 @@ public class AsyncMethodInterceptor implements MethodInterceptor {
         }
 
         if(executor == null) {
-            // TODO 是否使用默认的executor？
-            throw new RuntimeException();
+            throw new AsyncException(String.format("executor[%s] not found!", asyncMethod.getExecutorName()));
         }
         // TODO 线程池销毁时，需要判断，如果线程池销毁，则直接执行
 
