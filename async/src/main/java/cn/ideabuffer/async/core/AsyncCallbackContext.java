@@ -8,8 +8,6 @@ public class AsyncCallbackContext<T> {
 
     private boolean success;
 
-    private boolean timeout;
-
     private T result;
 
     private Throwable throwable;
@@ -23,14 +21,6 @@ public class AsyncCallbackContext<T> {
 
     public void setSuccess(boolean success) {
         this.success = success;
-    }
-
-    public boolean isTimeout() {
-        return timeout;
-    }
-
-    public void setTimeout(boolean timeout) {
-        this.timeout = timeout;
     }
 
     public T getResult() {

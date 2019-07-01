@@ -17,9 +17,4 @@ public interface AsyncCallback<T> {
      */
     void onFailure(Throwable t);
 
-    /**
-     * 执行超时回调方法
-     * @param result
-     */
-    void onTimeout(T result);
 }

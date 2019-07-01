@@ -18,8 +18,6 @@ public class AsyncCallbackProcessor {
 
         if(context.isSuccess()) {
             callback.onSuccess(context.getResult());
-        } else if (context.isTimeout()) {
-            callback.onTimeout(context.getResult());
         } else {
             callback.onFailure(context.getThrowable());
         }

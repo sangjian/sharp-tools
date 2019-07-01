@@ -66,10 +66,6 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
         super.run();
     }
 
-    public void syncRun() {
-        run();
-    }
-
     public T getValue() {
         if (value != null) {
             return value;
@@ -97,20 +93,15 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
         } catch (Exception e) {
             throwable = e;
         }
-        if(throwable != null) {
-            if(shouldCallback()) {
-                callbackContext.setThrowable(throwable);
-            }
-            if(throwable instanceof TimeoutException) {
-                callbackContext.setTimeout(true);
-            }
-            throw new AsyncException(throwable);
-        }
         if(shouldCallback()) {
-            callbackContext.setSuccess(true);
-            callbackContext.setResult(value);
+            if(throwable != null) {
+                callbackContext.setThrowable(throwable);
+                throw new AsyncException(throwable);
+            } else {
+                callbackContext.setSuccess(true);
+                callbackContext.setResult(value);
+            }
         }
-
 
         return value;
     }
