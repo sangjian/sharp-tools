@@ -37,7 +37,6 @@ public class AsyncExecutor {
     private AsyncThreadPool threadPoolExecutor;
 
     public AsyncExecutor() {
-        init();
     }
 
     public AsyncExecutor(int nThreads) {
@@ -69,10 +68,9 @@ public class AsyncExecutor {
         this.queueCapacity = queueCapacity;
         this.rejectMode = rejectMode;
         this.allowCoreThreadTimeOut = allowCoreThreadTimeOut;
-        init();
     }
 
-    private void init() {
+    public void init() {
 
         if (inited) {
             return;
@@ -89,6 +87,14 @@ public class AsyncExecutor {
 
         this.threadPoolExecutor = executor;
         inited = true;
+    }
+
+    public void destroy() {
+        if(!inited) {
+            return;
+        }
+        threadPoolExecutor.shutdown();
+        inited = false;
     }
 
     private RejectedExecutionHandler getHandler(RejectMode mode) {

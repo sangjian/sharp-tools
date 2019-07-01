@@ -68,7 +68,7 @@ public class AsyncTemplateTest {
         }, new AsyncCallback<User>() {
             @Override
             public void onSuccess(User result) {
-                System.out.println("in callback");
+                System.out.println("in callback, thread:" + Thread.currentThread().getName());
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException e) {

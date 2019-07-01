@@ -48,6 +48,7 @@ public class AsyncMethodInterceptor implements MethodInterceptor {
         if(executor == null) {
             throw new AsyncException(String.format("executor[%s] not found!", asyncMethod.getExecutorName()));
         }
+        asyncMethod.setExecutor(executor);
         // TODO 线程池销毁时，需要判断，如果线程池销毁，则直接执行
 
         final Object[] finArgs = args;
