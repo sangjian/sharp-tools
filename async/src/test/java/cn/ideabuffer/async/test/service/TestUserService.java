@@ -18,10 +18,10 @@ public class TestUserService {
     @Async
     public User asyncGetUser(String name, int age, int sleep) {
         logger.info("enter asyncGetUser");
-        User user = getUser(name, age, sleep);
+        User user = getUser(name, age, 0);
         logger.info("asyncGetUser invoke getUser finished");
         try {
-            Thread.sleep(3000);
+            Thread.sleep(sleep);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

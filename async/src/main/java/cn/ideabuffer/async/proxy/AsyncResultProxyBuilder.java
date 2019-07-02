@@ -34,19 +34,20 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
         if (proxyClass == null) {
             Enhancer enhancer = new Enhancer();
             if (returnClass.isInterface()) {
-                enhancer.setInterfaces(new Class[]{AsyncProxyResult.class, returnClass});
+                enhancer.setInterfaces(new Class[]{AsyncProxyResult.class, returnClass, CglibSerializable.class});
             } else {
-                enhancer.setInterfaces(new Class[]{AsyncProxyResult.class});
+                enhancer.setInterfaces(new Class[]{AsyncProxyResult.class, CglibSerializable.class});
                 enhancer.setSuperclass(returnClass);
             }
             enhancer.setCallbackFilter(new AsyncResultCallbackFilter());
-            enhancer.setCallbackTypes(new Class[] {AsyncProxyResultInterceptor.class, AsyncResultInterceptor.class});
+            enhancer.setCallbackTypes(new Class[] {AsyncProxyResultInterceptor.class, AsyncResultInterceptor.class, AsyncProxySerializeInterceptor.class});
             proxyClass = enhancer.createClass();
             logger.debug("create result proxy class:{}", returnClass);
             AsyncProxyCache.putProxyClass(AsyncProxyUtils.getOriginClass(target).getName(), proxyClass);
         }
         Enhancer.registerCallbacks(proxyClass, new Callback[]{new AsyncProxyResultInterceptor(),
-            new AsyncResultInterceptor(future)});
+            new AsyncResultInterceptor(future),
+        new AsyncProxySerializeInterceptor()});
         Object proxyObject;
         try {
             proxyObject = AsyncProxyUtils.newInstance(proxyClass);
@@ -62,9 +63,13 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
         public int accept(Method method) {
             if(AsyncProxyResult.class.isAssignableFrom(method.getDeclaringClass())) {
                 return 0;
+            }
+            if("writeReplace".equals(method.getName())) {
+                return 2;
             } else {
                 return 1;
             }
+
         }
     }
 
@@ -80,6 +85,16 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
             }
 
             throw new AsyncException("method[" + method.getName() + "] is not support!");
+        }
+    }
+
+    class AsyncProxySerializeInterceptor implements MethodInterceptor {
+
+        @Override
+        public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
+            Object obj = AsyncProxyUtils.getCglibProxyTargetObject(o);
+            return obj;
+
         }
     }
 }

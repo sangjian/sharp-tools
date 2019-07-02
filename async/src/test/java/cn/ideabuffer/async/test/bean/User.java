@@ -1,10 +1,12 @@
 package cn.ideabuffer.async.test.bean;
 
+import java.io.*;
+
 /**
  * @author sangjian.sj
  * @date 2019/06/27
  */
-public class User {
+public class User implements Serializable {
 
     private String name;
 
@@ -38,4 +40,5 @@ public class User {
             ", age=" + age +
             '}';
     }
+
 }

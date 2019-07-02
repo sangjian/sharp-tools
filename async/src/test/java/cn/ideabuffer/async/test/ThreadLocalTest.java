@@ -77,4 +77,29 @@ public class ThreadLocalTest {
 
     }
 
+    @Test
+    public void testSetThreadLocal() throws ExecutionException, InterruptedException {
+        executor.init();
+        ThreadLocal<String> threadLocal = new ThreadLocal<>();
+        threadLocal.set("test-value");
+
+        AsyncCallable callable = new AsyncCallable() {
+            @Override
+            public long getTimeout() {
+                return 0;
+            }
+
+            @Override
+            public Object call() throws Exception {
+                System.out.println(Thread.currentThread().getName() + "," + threadLocal.get());
+                threadLocal.set("test-in-call-value");
+                return null;
+            }
+        };
+
+        Future future = executor.submit(callable);
+        future.get();
+        System.out.println(threadLocal.get());
+    }
+
 }

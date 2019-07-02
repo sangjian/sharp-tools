@@ -1,15 +1,13 @@
 package cn.ideabuffer.async.proxy;
 
+import cn.ideabuffer.async.core.AsyncFutureTask;
 import cn.ideabuffer.async.core.AsyncProxyResult;
 import cn.ideabuffer.async.exception.AsyncException;
 import net.sf.cglib.core.ReflectUtils;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.util.ClassUtils;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -173,6 +171,22 @@ public class AsyncProxyUtils {
             return returnObj == null;
         } else {
             return ((AsyncProxyResult) returnObj)._isNull();
+        }
+    }
+
+    public static Object getCglibProxyTargetObject(Object proxy) {
+        try{
+            Field h = proxy.getClass().getDeclaredField("CGLIB$CALLBACK_0");
+            h.setAccessible(true);
+            Object callbackObject = h.get(proxy);
+            Field this0 = callbackObject.getClass().getDeclaredField("this$0");
+            this0.setAccessible(true);
+            Object futureObject = this0.get(callbackObject);
+            Field future = futureObject.getClass().getDeclaredField("future");
+            future.setAccessible(true);
+            return  ((AsyncFutureTask<?>)future.get(futureObject)).getValue();
+        } catch(Exception e){
+            throw new AsyncException();
         }
     }
 
