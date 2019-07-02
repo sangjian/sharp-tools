@@ -186,8 +186,7 @@ public class AsyncProxyUtils {
             future.setAccessible(true);
             return  ((AsyncFutureTask<?>)future.get(futureObject)).getValue();
         } catch(Exception e){
-            throw new AsyncException();
+            throw new AsyncException("getCglibProxyTargetObject error", e);
         }
     }
-
 }
