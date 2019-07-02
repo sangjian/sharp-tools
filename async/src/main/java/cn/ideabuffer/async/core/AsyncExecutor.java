@@ -93,8 +93,8 @@ public class AsyncExecutor {
         if(!inited) {
             return;
         }
-        threadPoolExecutor.shutdown();
         inited = false;
+        threadPoolExecutor.shutdown();
     }
 
     private RejectedExecutionHandler getHandler(RejectMode mode) {
@@ -185,6 +185,10 @@ public class AsyncExecutor {
         } else {
             return new SynchronousQueue<>();
         }
+    }
+
+    public boolean isShutdown() {
+        return inited;
     }
 
     /**
