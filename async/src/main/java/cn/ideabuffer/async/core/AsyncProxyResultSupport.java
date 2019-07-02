@@ -4,7 +4,7 @@ package cn.ideabuffer.async.core;
  * @author sangjian.sj
  * @date 2019/06/24
  */
-public interface AsyncProxyResult {
+public interface AsyncProxyResultSupport {
 
     boolean _isNull();
 

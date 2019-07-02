@@ -12,9 +12,9 @@ public class AsyncExecutor {
 
     private static final int DEFAULT_KEEP_ALIVE_SECONDES = 60;
 
-    private static final int DEFAULT_CORE_POOL_SIZE = 16;
+    private static final int DEFAULT_CORE_POOL_SIZE = Runtime.getRuntime().availableProcessors();
 
-    private static final int DEFAULT_MAX_POOL_SIZE = DEFAULT_CORE_POOL_SIZE;
+    private static final int DEFAULT_MAX_POOL_SIZE = 2 * DEFAULT_CORE_POOL_SIZE;
 
     private static final int DEFAULT_QUEUE_CAPACITY = Integer.MAX_VALUE;
 

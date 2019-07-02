@@ -1,7 +1,7 @@
 package cn.ideabuffer.async.proxy;
 
 import cn.ideabuffer.async.core.AsyncFutureTask;
-import cn.ideabuffer.async.core.AsyncProxyResult;
+import cn.ideabuffer.async.core.AsyncProxyResultSupport;
 import cn.ideabuffer.async.exception.AsyncException;
 import net.sf.cglib.core.ReflectUtils;
 import org.springframework.aop.support.AopUtils;
@@ -167,10 +167,10 @@ public class AsyncProxyUtils {
     }
 
     public static boolean isNull(Object returnObj) throws AsyncException {
-        if (!(returnObj instanceof AsyncProxyResult)) {
+        if (!(returnObj instanceof AsyncProxyResultSupport)) {
             return returnObj == null;
         } else {
-            return ((AsyncProxyResult) returnObj)._isNull();
+            return ((AsyncProxyResultSupport) returnObj)._isNull();
         }
     }
 

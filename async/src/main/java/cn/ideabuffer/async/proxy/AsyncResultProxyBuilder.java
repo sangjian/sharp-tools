@@ -1,7 +1,7 @@
 package cn.ideabuffer.async.proxy;
 
 import cn.ideabuffer.async.core.AsyncFutureTask;
-import cn.ideabuffer.async.core.AsyncProxyResult;
+import cn.ideabuffer.async.core.AsyncProxyResultSupport;
 import cn.ideabuffer.async.exception.AsyncException;
 import net.sf.cglib.proxy.*;
 import org.slf4j.Logger;
@@ -34,9 +34,9 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
         if (proxyClass == null) {
             Enhancer enhancer = new Enhancer();
             if (returnClass.isInterface()) {
-                enhancer.setInterfaces(new Class[]{AsyncProxyResult.class, returnClass, CglibSerializable.class});
+                enhancer.setInterfaces(new Class[]{AsyncProxyResultSupport.class, returnClass, CglibSerializable.class});
             } else {
-                enhancer.setInterfaces(new Class[]{AsyncProxyResult.class, CglibSerializable.class});
+                enhancer.setInterfaces(new Class[]{AsyncProxyResultSupport.class, CglibSerializable.class});
                 enhancer.setSuperclass(returnClass);
             }
             enhancer.setCallbackFilter(new AsyncResultCallbackFilter());
@@ -61,7 +61,7 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
 
         @Override
         public int accept(Method method) {
-            if(AsyncProxyResult.class.isAssignableFrom(method.getDeclaringClass())) {
+            if(AsyncProxyResultSupport.class.isAssignableFrom(method.getDeclaringClass())) {
                 return 0;
             }
             if("writeReplace".equals(method.getName())) {
