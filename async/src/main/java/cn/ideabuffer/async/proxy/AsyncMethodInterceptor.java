@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
+import java.util.concurrent.Future;
 
 /**
  * @author sangjian.sj
@@ -58,7 +59,14 @@ public class AsyncMethodInterceptor implements MethodInterceptor {
             @Override
             public Object call() {
                 try {
-                    return methodProxy.invokeSuper(obj, finArgs);
+                    Object result =  methodProxy.invokeSuper(obj, finArgs);
+                    if(result == null) {
+                        return null;
+                    }
+                    if(result instanceof Future) {
+                        return ((Future<?>)result).get();
+                    }
+                    return result;
                 } catch (Throwable e) {
                     throw new AsyncException(e);
                 }
