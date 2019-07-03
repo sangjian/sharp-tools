@@ -63,8 +63,8 @@ public class AsyncMethodInterceptor implements MethodInterceptor {
             public Object call() {
                 try {
                     return methodProxy.invokeSuper(obj, finArgs);
-                } catch (Throwable e) {
-                    throw new AsyncException(e);
+                } catch (Throwable throwable) {
+                    throw new AsyncException(String.format("task method:[%s#%s] invoke failed!", method.getDeclaringClass().getName(), method.getName()), throwable);
                 }
             }
 

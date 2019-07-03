@@ -77,5 +77,15 @@ public class TestUserService {
         return new User(name, age);
     }
 
+    @Async
+    public User getException() {
+        System.out.println("in getAsyncUserPrivate");
+        try {
+            Thread.sleep(0);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        throw new NullPointerException("in getException");
+    }
 
 }

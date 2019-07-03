@@ -25,29 +25,32 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
 
     @Override
     public Object buildProxy(Object target) {
-        if(!(target instanceof Class)) {
+        if (!(target instanceof Class)) {
             throw new RuntimeException();
         }
-        Class<?> returnClass =  (Class) target;
+        Class<?> returnClass = (Class)target;
 
         Class<?> proxyClass = AsyncProxyCache.getProxyClass(returnClass.getName());
         if (proxyClass == null) {
             Enhancer enhancer = new Enhancer();
             if (returnClass.isInterface()) {
-                enhancer.setInterfaces(new Class[]{AsyncProxyResultSupport.class, returnClass, CglibSerializable.class});
+                enhancer.setInterfaces(
+                    new Class[] {AsyncProxyResultSupport.class, returnClass, CglibSerializable.class});
             } else {
-                enhancer.setInterfaces(new Class[]{AsyncProxyResultSupport.class, CglibSerializable.class});
+                enhancer.setInterfaces(new Class[] {AsyncProxyResultSupport.class, CglibSerializable.class});
                 enhancer.setSuperclass(returnClass);
             }
             enhancer.setCallbackFilter(new AsyncResultCallbackFilter());
-            enhancer.setCallbackTypes(new Class[] {AsyncProxyResultInterceptor.class, AsyncResultInterceptor.class, AsyncProxySerializeInterceptor.class});
+            enhancer.setCallbackTypes(new Class[] {AsyncProxyResultInterceptor.class, AsyncResultInterceptor.class,
+                AsyncProxySerializeInterceptor.class, AsyncToStringInterceptor.class});
             proxyClass = enhancer.createClass();
             logger.debug("create result proxy class:{}", returnClass);
             AsyncProxyCache.putProxyClass(AsyncProxyUtils.getOriginClass(target).getName(), proxyClass);
         }
-        Enhancer.registerCallbacks(proxyClass, new Callback[]{new AsyncProxyResultInterceptor(),
+        Enhancer.registerCallbacks(proxyClass, new Callback[] {new AsyncProxyResultInterceptor(),
             new AsyncResultInterceptor(future),
-        new AsyncProxySerializeInterceptor()});
+            new AsyncProxySerializeInterceptor(),
+            new AsyncToStringInterceptor()});
         Object proxyObject;
         try {
             proxyObject = AsyncProxyUtils.newInstance(proxyClass);
@@ -61,11 +64,14 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
 
         @Override
         public int accept(Method method) {
-            if(AsyncProxyResultSupport.class.isAssignableFrom(method.getDeclaringClass())) {
+            if (AsyncProxyResultSupport.class.isAssignableFrom(method.getDeclaringClass())) {
                 return 0;
             }
-            if("writeReplace".equals(method.getName())) {
+            if ("writeReplace".equals(method.getName())) {
                 return 2;
+            }
+            if ("toString".equals(method.getName())) {
+                return 3;
             } else {
                 return 1;
             }
@@ -73,10 +79,22 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
         }
     }
 
+    class AsyncToStringInterceptor implements MethodInterceptor {
+
+        @Override
+        public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+            Object value = future.getValue();
+            if (value == null) {
+                return "null";
+            }
+            return value;
+        }
+    }
+
     class AsyncProxyResultInterceptor implements MethodInterceptor {
 
         @Override
-        public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
+        public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) {
             if ("_isNull".equals(method.getName())) {
                 return future.getValue() == null;
             }
@@ -91,10 +109,8 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
     class AsyncProxySerializeInterceptor implements MethodInterceptor {
 
         @Override
-        public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
-            Object obj = AsyncProxyUtils.getCglibProxyTargetObject(o);
-            return obj;
-
+        public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) {
+            return AsyncProxyUtils.getCglibProxyTargetObject(o);
         }
     }
 }

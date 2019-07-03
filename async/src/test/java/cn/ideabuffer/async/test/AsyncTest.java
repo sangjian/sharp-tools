@@ -56,4 +56,11 @@ public class AsyncTest {
         System.out.println(future.get());
     }
 
+    @Test
+    public void testException() throws ExecutionException, InterruptedException {
+        User user = testUserService.getException();
+        System.out.println("invoke testException finished");
+        System.out.println(user);
+    }
+
 }

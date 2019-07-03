@@ -1,13 +1,10 @@
 package cn.ideabuffer.async.core;
 
-import cn.ideabuffer.async.bean.AsyncMethod;
 import cn.ideabuffer.async.exception.AsyncException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.*;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author sangjian.sj
@@ -55,10 +52,16 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
     @Override
     protected void done() {
         endTime = System.currentTimeMillis();
-        if(callback == null) {
-            return;
+        try {
+            getValue();
+        } catch (Exception e) {
+            // ignore
         }
-        AsyncCallbackProcessor.doCallback(callback, callbackContext);
+        if(shouldCallback()) {
+            AsyncCallbackProcessor.doCallback(callback, callbackContext);
+        }
+
+
     }
 
     @Override
@@ -71,7 +74,7 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
             return value;
         }
         startTime = System.currentTimeMillis();
-        if(shouldCallback()) {
+        if (shouldCallback()) {
             callbackContext = new AsyncCallbackContext<>();
             callbackContext.setSuccess(false);
         }
@@ -85,22 +88,26 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
             }
             endTime = System.currentTimeMillis();
             if (logger.isDebugEnabled()) {
-                logger.debug("invoking load time:{} timeout:{}, value:{}", this.endTime - this.startTime, timeout, value);
+                logger.debug("invoking load time:{} timeout:{}, value:{}", this.endTime - this.startTime, timeout,
+                    value);
             }
         } catch (TimeoutException e) {
             super.cancel(true);
             throwable = e;
-        } catch (Exception e) {
+        } catch (InterruptedException | ExecutionException e) {
             throwable = e;
         }
+
         if(shouldCallback()) {
             if(throwable != null) {
                 callbackContext.setThrowable(throwable);
-                throw new AsyncException(throwable);
             } else {
                 callbackContext.setSuccess(true);
                 callbackContext.setResult(value);
             }
+        }
+        if(throwable != null) {
+            throw new AsyncException("getValue encountered problem!", throwable);
         }
 
         return value;
