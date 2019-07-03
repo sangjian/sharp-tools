@@ -52,7 +52,7 @@ public class AsyncTest {
     @Test
     public void testGetInt() throws ExecutionException, InterruptedException {
         Future<Integer> future = testPrimitiveService.getInt();
-        System.out.println("invoke asyncGetUser finished");
+        System.out.println("invoke testGetInt finished");
         System.out.println(future.get());
     }
 
