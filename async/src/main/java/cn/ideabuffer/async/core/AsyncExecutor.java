@@ -188,7 +188,7 @@ public class AsyncExecutor {
     }
 
     public boolean isShutdown() {
-        return inited;
+        return !inited;
     }
 
     /**

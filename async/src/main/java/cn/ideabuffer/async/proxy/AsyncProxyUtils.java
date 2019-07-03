@@ -38,7 +38,6 @@ public class AsyncProxyUtils {
         PRIMITIVE_VALUE_MAP.put(float.class, Float.valueOf(0));
         PRIMITIVE_VALUE_MAP.put(int.class, Integer.valueOf(0));
         PRIMITIVE_VALUE_MAP.put(long.class, Long.valueOf(0));
-
     }
 
     public static Object newInstance(Class type) {

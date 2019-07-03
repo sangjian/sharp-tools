@@ -10,6 +10,7 @@ import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.Future;
@@ -42,20 +43,17 @@ public class AsyncMethodInterceptor implements MethodInterceptor {
 
         AsyncExecutor executor = asyncMethod.getExecutor();
 
-        if(executor == null) {
-            executor = SpringApplicationContextHolder.getBean(asyncMethod.getExecutorName(), AsyncExecutor.class);
-        }
-
-        if(executor == null) {
+        if(executor == null && !SpringApplicationContextHolder.containsBean(asyncMethod.getExecutorName())) {
             throw new AsyncException(String.format("executor[%s] not found!", asyncMethod.getExecutorName()));
         }
+
+        executor = SpringApplicationContextHolder.getBean(asyncMethod.getExecutorName(), AsyncExecutor.class);
         asyncMethod.setExecutor(executor);
 
         // 如果线程池销毁，则直接执行
         if(executor.isShutdown()) {
             return methodProxy.invokeSuper(obj, args);
         }
-
 
         final Object[] finArgs = args;
 
@@ -64,14 +62,7 @@ public class AsyncMethodInterceptor implements MethodInterceptor {
             @Override
             public Object call() {
                 try {
-                    Object result =  methodProxy.invokeSuper(obj, finArgs);
-                    if(result == null) {
-                        return null;
-                    }
-                    if(result instanceof Future) {
-                        return ((Future<?>)result).get();
-                    }
-                    return result;
+                    return methodProxy.invokeSuper(obj, finArgs);
                 } catch (Throwable e) {
                     throw new AsyncException(e);
                 }

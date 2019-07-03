@@ -40,5 +40,17 @@ public class TestUserService {
         return new User(name, age);
     }
 
+    @Async
+    public User asyncGetUserNull(int sleep) {
+        logger.info("enter asyncGetUserNull");
+
+        try {
+            Thread.sleep(sleep);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 
 }
