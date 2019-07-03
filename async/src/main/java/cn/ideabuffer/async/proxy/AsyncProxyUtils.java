@@ -68,8 +68,8 @@ public class AsyncProxyUtils {
     }
 
     public static int getSimpleParamenterTypeIndex(Constructor[] constructors) {
-        Constructor constructor = null;
-        Class[] params = null;
+        Constructor constructor;
+        Class[] params;
         boolean isSimpleTypes;
         for (int i = 0; i < constructors.length; i++) {
             constructor = constructors[i];
@@ -135,13 +135,6 @@ public class AsyncProxyUtils {
             || cls.isArray()
             || cls.isPrimitive()
             || cls == Object.class) {
-            return false;
-        }
-        return true;
-    }
-
-    public static boolean canProxyInvoke(Method method) {
-        if ("finalize".equals(method.getName())) {
             return false;
         }
         return true;

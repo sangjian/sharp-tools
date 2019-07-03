@@ -7,5 +7,7 @@ import java.util.concurrent.Callable;
  * @date 2019/06/18
  */
 public interface AsyncCallable<T> extends Callable<T> {
-    long getTimeout();
+    default long getTimeout() {
+        return 0;
+    }
 }

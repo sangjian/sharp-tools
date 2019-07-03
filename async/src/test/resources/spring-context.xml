@@ -7,4 +7,12 @@
     <context:annotation-config/>
 
     <bean id="defaultAsyncExecutor" class="cn.ideabuffer.async.core.AsyncExecutor" init-method="init" destroy-method="destroy"/>
+    <bean id="asyncTemplate" class="cn.ideabuffer.async.core.AsyncTemplate">
+        <property name="executor" ref="defaultAsyncExecutor" />
+    </bean>
+    <bean id="settleGroupCheckService" class="com.taobao.hsf.app.spring.util.HSFSpringConsumerBean"
+          init-method="init">
+        <property name="interfaceName" value="com.taobao.paimai.settle.service.SettleGroupCheckService" />
+        <property name="version" value="1.0.0.daily" />
+    </bean>
 </beans>

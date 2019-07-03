@@ -29,7 +29,7 @@ public class TestUserService {
     }
 
     //@Async
-    public User getUser(String name, int age, int sleep) {
+    private User getUser(String name, int age, int sleep) {
         logger.info("enter getUser");
         try {
             Thread.sleep(sleep);
@@ -50,6 +50,31 @@ public class TestUserService {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Async
+    public User getUserPrivate(String name, int age) {
+        System.out.println("getUserPrivate thread:" + Thread.currentThread().getName());
+        User user = getAsyncUserPrivate(name, age);
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("getUserPrivate sleep finished");
+        return user;
+    }
+
+    @Async
+    private User getAsyncUserPrivate(String name, int age) {
+        System.out.println("in getAsyncUserPrivate");
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("getAsyncUserPrivate finished, thread:" + Thread.currentThread().getName());
+        return new User(name, age);
     }
 
 
