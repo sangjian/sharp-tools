@@ -41,14 +41,14 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
                 enhancer.setSuperclass(returnClass);
             }
             enhancer.setCallbackFilter(new AsyncResultCallbackFilter());
-            enhancer.setCallbackTypes(new Class[] {AsyncProxyResultInterceptor.class, AsyncResultInterceptor.class,
+            enhancer.setCallbackTypes(new Class[] {AsyncResultInterceptor.class, AsyncProxyResultInterceptor.class,
                 AsyncProxySerializeInterceptor.class, AsyncObjectMethodInterceptor.class});
             proxyClass = enhancer.createClass();
             logger.debug("create result proxy class:{}", returnClass);
             AsyncProxyCache.putProxyClass(AsyncProxyUtils.getOriginClass(target).getName(), proxyClass);
         }
-        Enhancer.registerCallbacks(proxyClass, new Callback[] {new AsyncProxyResultInterceptor(),
-            new AsyncResultInterceptor(future),
+        Enhancer.registerCallbacks(proxyClass, new Callback[] {new AsyncResultInterceptor(future),
+            new AsyncProxyResultInterceptor(),
             new AsyncProxySerializeInterceptor(),
             new AsyncObjectMethodInterceptor()});
         Object proxyObject;
@@ -65,7 +65,7 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
         @Override
         public int accept(Method method) {
             if (AsyncProxyResultSupport.class.isAssignableFrom(method.getDeclaringClass())) {
-                return 0;
+                return 1;
             }
             if ("writeReplace".equals(method.getName())) {
                 return 2;
@@ -75,7 +75,7 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
                 || "hashCode".equals(method.getName())) {
                 return 3;
             }
-            return 1;
+            return 0;
         }
     }
 
