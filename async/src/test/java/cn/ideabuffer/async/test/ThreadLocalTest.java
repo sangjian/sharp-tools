@@ -81,7 +81,6 @@ public class ThreadLocalTest {
     public void testSetThreadLocal() throws ExecutionException, InterruptedException {
         executor.init();
         ThreadLocal<String> threadLocal = new ThreadLocal<>();
-        threadLocal.set("test-value");
 
         AsyncCallable callable = new AsyncCallable() {
             @Override

@@ -127,6 +127,14 @@ public class AsyncProxyUtils {
         return targetClass;
     }
 
+    public static boolean isVoid(Class cls) {
+        if (Void.class.equals(cls)
+            || Void.TYPE.isAssignableFrom(cls)) {
+            return true;
+        }
+        return false;
+    }
+
     public static boolean canProxy(Class cls) {
         if (Void.class.equals(cls)
             || Void.TYPE.isAssignableFrom(cls)

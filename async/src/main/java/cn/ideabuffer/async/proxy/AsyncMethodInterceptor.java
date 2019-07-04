@@ -36,7 +36,9 @@ public class AsyncMethodInterceptor implements MethodInterceptor {
 
         final AsyncMethod asyncMethod = AsyncProxyCache.getProxyMethod(methodKey);
 
-        if (asyncMethod == null || !AsyncProxyUtils.canProxy(method.getReturnType())) {
+        if (asyncMethod == null || (
+            !AsyncProxyUtils.canProxy(method.getReturnType()))
+            && !AsyncProxyUtils.isVoid(method.getReturnType())) {
             return methodProxy.invokeSuper(obj, args);
         }
 
@@ -73,7 +75,9 @@ public class AsyncMethodInterceptor implements MethodInterceptor {
                 return asyncMethod.getTimeout();
             }
         });
-
+        if(AsyncProxyUtils.isVoid(method.getReturnType())) {
+            return null;
+        }
         return new AsyncResultProxyBuilder(future).buildProxy(method.getReturnType());
     }
 

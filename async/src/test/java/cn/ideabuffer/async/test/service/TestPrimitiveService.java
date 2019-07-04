@@ -27,4 +27,14 @@ public class TestPrimitiveService {
         return new AsyncResultFuture<>(1);
     }
 
+    @Async
+    public void getVoid() {
+        try {
+            Thread.sleep(4000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("getVoid done");
+    }
+
 }

@@ -63,4 +63,11 @@ public class AsyncTest {
         System.out.println(user);
     }
 
+    @Test
+    public void testVoid() throws ExecutionException, InterruptedException {
+        testPrimitiveService.getVoid();
+        System.out.println("invoke testVoid finished");
+        Thread.sleep(5000);
+    }
+
 }
