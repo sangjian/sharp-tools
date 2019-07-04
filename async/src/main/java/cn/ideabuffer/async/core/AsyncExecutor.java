@@ -195,6 +195,31 @@ public class AsyncExecutor {
         submit(task, callback);
     }
 
+    public <T> AsyncFutureTask<T> submit(Callable<T> task) {
+        return submit(task, 0);
+    }
+
+    public <T> AsyncFutureTask<T> submit(Callable<T> task, long timeout) {
+        return submit(task, timeout, null);
+    }
+
+    public <T> AsyncFutureTask<T> submit(Callable<T> task, long timeout, AsyncCallback<T> callback) {
+        if(task instanceof AsyncCallable) {
+            return submit((AsyncCallable<T>)task);
+        }
+        return submit(new AsyncCallable<T>() {
+            @Override
+            public T call() throws Exception {
+                return task.call();
+            }
+
+            @Override
+            public long getTimeout() {
+                return timeout;
+            }
+        }, callback);
+    }
+
     public <T> AsyncFutureTask<T> submit(AsyncCallable<T> task) {
         return threadPoolExecutor.submit(task);
     }
