@@ -51,13 +51,13 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
 
     @Override
     protected void done() {
-        endTime = System.currentTimeMillis();
-        try {
-            getValue();
-        } catch (Exception e) {
-            // ignore
-        }
+
         if(shouldCallback()) {
+            try {
+                getValue();
+            } catch (Exception e) {
+                // ignore
+            }
             AsyncCallbackProcessor.doCallback(callback, callbackContext);
         }
 
@@ -94,7 +94,7 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
         } catch (TimeoutException e) {
             super.cancel(true);
             throwable = e;
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (Exception e) {
             throwable = e;
         }
 
@@ -107,6 +107,7 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
             }
         }
         if(throwable != null) {
+            logger.error("getValue encountered problem!", throwable);
             throw new AsyncException("getValue encountered problem!", throwable);
         }
 
