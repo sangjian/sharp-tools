@@ -42,7 +42,7 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
             }
             enhancer.setCallbackFilter(new AsyncResultCallbackFilter());
             enhancer.setCallbackTypes(new Class[] {AsyncProxyResultInterceptor.class, AsyncResultInterceptor.class,
-                AsyncProxySerializeInterceptor.class, AsyncToStringInterceptor.class});
+                AsyncProxySerializeInterceptor.class, AsyncObjectMethodInterceptor.class});
             proxyClass = enhancer.createClass();
             logger.debug("create result proxy class:{}", returnClass);
             AsyncProxyCache.putProxyClass(AsyncProxyUtils.getOriginClass(target).getName(), proxyClass);
@@ -50,7 +50,7 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
         Enhancer.registerCallbacks(proxyClass, new Callback[] {new AsyncProxyResultInterceptor(),
             new AsyncResultInterceptor(future),
             new AsyncProxySerializeInterceptor(),
-            new AsyncToStringInterceptor()});
+            new AsyncObjectMethodInterceptor()});
         Object proxyObject;
         try {
             proxyObject = AsyncProxyUtils.newInstance(proxyClass);
@@ -70,24 +70,33 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
             if ("writeReplace".equals(method.getName())) {
                 return 2;
             }
-            if ("toString".equals(method.getName())) {
+            if ("toString".equals(method.getName())
+                || "equals".equals(method.getName())
+                || "hashCode".equals(method.getName())) {
                 return 3;
-            } else {
-                return 1;
             }
-
+            return 1;
         }
     }
 
-    class AsyncToStringInterceptor implements MethodInterceptor {
+    class AsyncObjectMethodInterceptor implements MethodInterceptor {
 
         @Override
         public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
             Object value = future.getValue();
-            if (value == null) {
+            if(value != null) {
+                return value;
+            }
+            if ("equals".equals(method.getName())) {
+                return false;
+            }
+            if("hashCode".equals(method.getName())) {
+                return -1;
+            }
+            if("toString".equals(method.getName())) {
                 return "null";
             }
-            return value;
+            return null;
         }
     }
 

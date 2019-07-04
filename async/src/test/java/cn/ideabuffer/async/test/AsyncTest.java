@@ -46,7 +46,7 @@ public class AsyncTest {
     public void testGetUserNull() {
         User user = testUserService.asyncGetUserNull(5000);
         System.out.println("invoke asyncGetUser finished");
-        System.out.println(AsyncProxyUtils.isNull(user));
+        System.out.println(user.hashCode());
     }
 
     @Test
@@ -60,7 +60,7 @@ public class AsyncTest {
     public void testException() throws ExecutionException, InterruptedException {
         User user = testUserService.getException();
         System.out.println("invoke testException finished");
-        //System.out.println(user);
+        System.out.println(user);
     }
 
 }
