@@ -6,6 +6,7 @@ import cn.ideabuffer.async.exception.AsyncException;
 import net.sf.cglib.proxy.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
 
@@ -70,9 +71,9 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
             if ("writeReplace".equals(method.getName())) {
                 return 2;
             }
-            if ("toString".equals(method.getName())
-                || "equals".equals(method.getName())
-                || "hashCode".equals(method.getName())) {
+            if (ReflectionUtils.isToStringMethod(method)
+                || ReflectionUtils.isEqualsMethod(method)
+                || ReflectionUtils.isHashCodeMethod(method)) {
                 return 3;
             }
             return 0;
@@ -87,13 +88,13 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
             if(value != null) {
                 return value;
             }
-            if ("equals".equals(method.getName())) {
+            if (ReflectionUtils.isEqualsMethod(method)) {
                 return false;
             }
-            if("hashCode".equals(method.getName())) {
+            if(ReflectionUtils.isHashCodeMethod(method)) {
                 return -1;
             }
-            if("toString".equals(method.getName())) {
+            if(ReflectionUtils.isToStringMethod(method)) {
                 return "null";
             }
             return null;
