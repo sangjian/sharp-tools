@@ -163,20 +163,44 @@ public class AsyncExecutor {
         this.rejectMode = rejectMode;
     }
 
-    public <T> void execute(AsyncCallable<T> callable) {
-        submit(callable);
+    public void execute(Runnable task) {
+        execute(task, 0);
     }
 
-    public <T> void execute(AsyncCallable<T> callable, AsyncCallback<T> callback) {
-        submit(callable, callback);
+    public void execute(Runnable task, long timeout) {
+        execute(task, timeout, null);
     }
 
-    public <T> AsyncFutureTask<T> submit(AsyncCallable<T> callable) {
-        return threadPoolExecutor.submit(callable);
+    public void execute(Runnable task, long timeout, AsyncCallback<Void> callback) {
+        AsyncCallable<Void> callable = new AsyncCallable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                task.run();
+                return null;
+            }
+
+            @Override
+            public long getTimeout() {
+                return timeout;
+            }
+        };
+        execute(callable, callback);
     }
 
-    public <T> AsyncFutureTask<T> submit(AsyncCallable<T> callable, AsyncCallback<T> callback) {
-        return threadPoolExecutor.submit(callable, callback);
+    public <T> void execute(AsyncCallable<T> task) {
+        submit(task);
+    }
+
+    public <T> void execute(AsyncCallable<T> task, AsyncCallback<T> callback) {
+        submit(task, callback);
+    }
+
+    public <T> AsyncFutureTask<T> submit(AsyncCallable<T> task) {
+        return threadPoolExecutor.submit(task);
+    }
+
+    public <T> AsyncFutureTask<T> submit(AsyncCallable<T> task, AsyncCallback<T> callback) {
+        return threadPoolExecutor.submit(task, callback);
     }
 
     protected BlockingQueue<Runnable> createQueue(int queueCapacity) {

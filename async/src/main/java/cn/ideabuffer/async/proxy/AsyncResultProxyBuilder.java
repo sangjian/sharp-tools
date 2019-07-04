@@ -27,7 +27,8 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
     @Override
     public Object buildProxy(Object target) {
         if (!(target instanceof Class)) {
-            throw new RuntimeException();
+            logger.error("target:{} type is not Class", target);
+            throw new IllegalArgumentException(String.format("targetType:%s is not Class", target.getClass().getName()));
         }
         Class<?> returnClass = (Class)target;
 
