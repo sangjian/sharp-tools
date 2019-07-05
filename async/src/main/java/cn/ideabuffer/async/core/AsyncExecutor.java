@@ -34,6 +34,11 @@ public class AsyncExecutor {
 
     private volatile boolean inited = false;
 
+    /**
+     * 动态扩容标志
+     */
+    private volatile boolean dynamicExpand = false;
+
     private AsyncThreadPool threadPoolExecutor;
 
     public AsyncExecutor() {
@@ -221,7 +226,7 @@ public class AsyncExecutor {
     }
 
     public <T> AsyncFutureTask<T> submit(AsyncCallable<T> task) {
-        return threadPoolExecutor.submit(task);
+        return submit(task, null);
     }
 
     public <T> AsyncFutureTask<T> submit(AsyncCallable<T> task, AsyncCallback<T> callback) {
@@ -252,5 +257,13 @@ public class AsyncExecutor {
          * 抛异常
          */
         ABORT
+    }
+
+    /**
+     * 获取jvm内存使用率
+     * @return
+     */
+    public static double getMemoryUsage() {
+        return (double) (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / Runtime.getRuntime().maxMemory();
     }
 }

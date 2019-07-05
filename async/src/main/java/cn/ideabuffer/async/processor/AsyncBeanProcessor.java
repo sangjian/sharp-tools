@@ -14,7 +14,6 @@ import java.lang.reflect.Method;
  * @author sangjian.sj
  * @date 2019/06/18
  */
-@Component
 public class AsyncBeanProcessor implements BeanPostProcessor {
 
 
