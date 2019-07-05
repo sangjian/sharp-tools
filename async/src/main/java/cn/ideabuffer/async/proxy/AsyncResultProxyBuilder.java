@@ -47,7 +47,7 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
                 AsyncProxySerializeInterceptor.class, AsyncObjectMethodInterceptor.class});
             proxyClass = enhancer.createClass();
             logger.debug("create result proxy class:{}", returnClass);
-            AsyncProxyCache.putProxyClass(AsyncProxyUtils.getOriginClass(target).getName(), proxyClass);
+            AsyncProxyCache.putProxyClass(returnClass.getName(), proxyClass);
         }
         Enhancer.registerCallbacks(proxyClass, new Callback[] {new AsyncResultInterceptor(future),
             new AsyncProxyResultInterceptor(),
