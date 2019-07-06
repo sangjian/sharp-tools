@@ -38,7 +38,7 @@ public class AsyncTest {
         System.out.println("invoke asyncGetUser finished");
         System.out.println(user);
         long end = System.currentTimeMillis();
-        assertTrue(end - start < 8000);
+        assertTrue(end - start < 10000);
         System.out.println(user.getName());
     }
 

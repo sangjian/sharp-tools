@@ -44,7 +44,7 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
             }
             enhancer.setCallbackFilter(new AsyncResultCallbackFilter());
             enhancer.setCallbackTypes(new Class[] {AsyncResultInterceptor.class, AsyncProxyResultInterceptor.class,
-                AsyncProxySerializeInterceptor.class, AsyncObjectMethodInterceptor.class});
+                AsyncProxySerializeInterceptor.class, AsyncToStringMethodInterceptor.class});
             proxyClass = enhancer.createClass();
             logger.debug("create result proxy class:{}", returnClass);
             AsyncProxyCache.putProxyClass(returnClass.getName(), proxyClass);
@@ -52,7 +52,7 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
         Enhancer.registerCallbacks(proxyClass, new Callback[] {new AsyncResultInterceptor(future),
             new AsyncProxyResultInterceptor(),
             new AsyncProxySerializeInterceptor(),
-            new AsyncObjectMethodInterceptor()});
+            new AsyncToStringMethodInterceptor()});
         Object proxyObject;
         try {
             proxyObject = AsyncProxyUtils.newInstance(proxyClass);
@@ -81,24 +81,15 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
         }
     }
 
-    class AsyncObjectMethodInterceptor implements MethodInterceptor {
+    class AsyncToStringMethodInterceptor implements MethodInterceptor {
 
         @Override
         public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
             Object value = future.getValue();
             if(value != null) {
-                return value;
+                return value.toString();
             }
-            if (ReflectionUtils.isEqualsMethod(method)) {
-                return false;
-            }
-            if(ReflectionUtils.isHashCodeMethod(method)) {
-                return -1;
-            }
-            if(ReflectionUtils.isToStringMethod(method)) {
-                return "null";
-            }
-            return null;
+            return "null";
         }
     }
 

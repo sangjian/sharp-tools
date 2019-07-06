@@ -17,26 +17,27 @@ public class TestUserService {
 
     @Async
     public User asyncGetUser(String name, int age, int sleep) {
-        logger.info("enter asyncGetUser");
-        User user = getUser(name, age, 0);
+        logger.info("enter asyncGetUser, Thread:{}", Thread.currentThread().getName());
+        User user = getUser(name, age, sleep);
         logger.info("asyncGetUser invoke getUser finished");
         try {
             Thread.sleep(sleep);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        logger.info("asyncGetUser sleep finished, Thread:{}", Thread.currentThread().getName());
         return user;
     }
 
-    //@Async
-    private User getUser(String name, int age, int sleep) {
-        logger.info("enter getUser");
+    @Async
+    public User getUser(String name, int age, int sleep) {
+        logger.info("enter getUser, Thread:{}", Thread.currentThread().getName());
         try {
             Thread.sleep(sleep);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
+        logger.info("getUser sleep finished, Thread:{}", Thread.currentThread().getName());
         return new User(name, age);
     }
 

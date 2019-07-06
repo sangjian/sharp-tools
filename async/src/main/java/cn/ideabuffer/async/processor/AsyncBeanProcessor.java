@@ -9,6 +9,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 /**
  * @author sangjian.sj
@@ -35,7 +36,7 @@ public class AsyncBeanProcessor implements BeanPostProcessor {
         }
         for (Method method : methods) {
             Async annotation = AnnotationUtils.findAnnotation(method, Async.class);
-            if (annotation != null) {
+            if (annotation != null && Modifier.isPublic(method.getModifiers())) {
                 return AsyncProxyUtils.getAsyncMethodProxyBuilder(ProxyTypeEnum.CGLIB).buildProxy(bean);
             }
         }

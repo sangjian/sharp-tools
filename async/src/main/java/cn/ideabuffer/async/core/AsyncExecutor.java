@@ -1,5 +1,8 @@
 package cn.ideabuffer.async.core;
 
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
+
 import java.util.concurrent.*;
 
 /**
@@ -8,13 +11,13 @@ import java.util.concurrent.*;
  * @author sangjian.sj
  * @date 2019/06/18
  */
-public class AsyncExecutor {
+public class AsyncExecutor implements InitializingBean, DisposableBean {
 
     private static final int DEFAULT_KEEP_ALIVE_SECONDES = 60;
 
     private static final int DEFAULT_CORE_POOL_SIZE = Runtime.getRuntime().availableProcessors();
 
-    private static final int DEFAULT_MAX_POOL_SIZE = 2 * DEFAULT_CORE_POOL_SIZE;
+    private static final int DEFAULT_MAX_POOL_SIZE = 2 * Runtime.getRuntime().availableProcessors();
 
     private static final int DEFAULT_QUEUE_CAPACITY = Integer.MAX_VALUE;
 
@@ -30,7 +33,7 @@ public class AsyncExecutor {
 
     private RejectMode rejectMode = RejectMode.CALLER_RUN;
 
-    private boolean allowCoreThreadTimeOut = false;
+    private boolean allowCoreThreadTimeOut = true;
 
     private volatile boolean inited = false;
 
@@ -94,6 +97,12 @@ public class AsyncExecutor {
         inited = true;
     }
 
+    @Override
+    public void afterPropertiesSet() {
+        init();
+    }
+
+    @Override
     public void destroy() {
         if(!inited) {
             return;
@@ -107,13 +116,8 @@ public class AsyncExecutor {
             : new ThreadPoolExecutor.AbortPolicy();
     }
 
-    public int getCorePoolSize() {
-        synchronized (this.poolSizeMonitor) {
-            return this.corePoolSize;
-        }
-    }
 
-    public void setCorePoolSize(int corePoolSize) {
+    public void resetCorePoolSize(int corePoolSize) {
         synchronized (this.poolSizeMonitor) {
             this.corePoolSize = corePoolSize;
             if (this.threadPoolExecutor != null) {
@@ -122,13 +126,8 @@ public class AsyncExecutor {
         }
     }
 
-    public int getMaxPoolSize() {
-        synchronized (this.poolSizeMonitor) {
-            return this.maxPoolSize;
-        }
-    }
 
-    public void setMaxPoolSize(int maxPoolSize) {
+    public void resetMaxPoolSize(int maxPoolSize) {
         synchronized (this.poolSizeMonitor) {
             this.maxPoolSize = maxPoolSize;
             if (this.threadPoolExecutor != null) {
@@ -137,35 +136,13 @@ public class AsyncExecutor {
         }
     }
 
-    public int getKeepAliveSeconds() {
-        synchronized (this.poolSizeMonitor) {
-            return this.keepAliveSeconds;
-        }
-    }
-
-    public void setKeepAliveSeconds(int keepAliveSeconds) {
+    public void resetKeepAliveSeconds(int keepAliveSeconds) {
         synchronized (this.poolSizeMonitor) {
             this.keepAliveSeconds = keepAliveSeconds;
             if (this.threadPoolExecutor != null) {
                 this.threadPoolExecutor.setKeepAliveTime(keepAliveSeconds, TimeUnit.SECONDS);
             }
         }
-    }
-
-    public void setQueueCapacity(int queueCapacity) {
-        this.queueCapacity = queueCapacity;
-    }
-
-    public void setAllowCoreThreadTimeOut(boolean allowCoreThreadTimeOut) {
-        this.allowCoreThreadTimeOut = allowCoreThreadTimeOut;
-    }
-
-    public RejectMode getRejectMode() {
-        return rejectMode;
-    }
-
-    public void setRejectMode(RejectMode rejectMode) {
-        this.rejectMode = rejectMode;
     }
 
     public void execute(Runnable task) {
@@ -243,6 +220,62 @@ public class AsyncExecutor {
 
     public boolean isShutdown() {
         return !inited;
+    }
+
+    public int getCorePoolSize() {
+        return corePoolSize;
+    }
+
+    public void setCorePoolSize(int corePoolSize) {
+        this.corePoolSize = corePoolSize;
+    }
+
+    public int getMaxPoolSize() {
+        return maxPoolSize;
+    }
+
+    public void setMaxPoolSize(int maxPoolSize) {
+        this.maxPoolSize = maxPoolSize;
+    }
+
+    public int getKeepAliveSeconds() {
+        return keepAliveSeconds;
+    }
+
+    public void setKeepAliveSeconds(int keepAliveSeconds) {
+        this.keepAliveSeconds = keepAliveSeconds;
+    }
+
+    public int getQueueCapacity() {
+        return queueCapacity;
+    }
+
+    public void setQueueCapacity(int queueCapacity) {
+        this.queueCapacity = queueCapacity;
+    }
+
+    public RejectMode getRejectMode() {
+        return rejectMode;
+    }
+
+    public void setRejectMode(RejectMode rejectMode) {
+        this.rejectMode = rejectMode;
+    }
+
+    public boolean isAllowCoreThreadTimeOut() {
+        return allowCoreThreadTimeOut;
+    }
+
+    public void setAllowCoreThreadTimeOut(boolean allowCoreThreadTimeOut) {
+        this.allowCoreThreadTimeOut = allowCoreThreadTimeOut;
+    }
+
+    public boolean isDynamicExpand() {
+        return dynamicExpand;
+    }
+
+    public void setDynamicExpand(boolean dynamicExpand) {
+        this.dynamicExpand = dynamicExpand;
     }
 
     /**
