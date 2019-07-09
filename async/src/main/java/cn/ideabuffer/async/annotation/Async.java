@@ -12,7 +12,7 @@ import java.lang.annotation.*;
 @Documented
 public @interface Async {
 
-    String value() default "defaultAsyncExecutor";
+    String value() default "";
 
     long timeout() default 0;
 }

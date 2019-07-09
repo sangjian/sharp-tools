@@ -19,8 +19,6 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
 
     private final static Logger logger = LoggerFactory.getLogger(AsyncResultProxyBuilder.class);
 
-    private final static Object lock = new Object();
-
     private AsyncFutureTask future;
 
     public AsyncResultProxyBuilder(AsyncFutureTask future) {
