@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 
 /**
  * 结果代理对象builder
+ *
  * @author sangjian.sj
  * @date 2019/06/18
  */
@@ -29,7 +30,8 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
     public Object buildProxy(Object target) {
         if (!(target instanceof Class)) {
             logger.error("target:{} type is not Class", target);
-            throw new IllegalArgumentException(String.format("targetType:%s is not Class", target.getClass().getName()));
+            throw new IllegalArgumentException(
+                String.format("targetType:%s is not Class", target.getClass().getName()));
         }
         Class<?> returnClass = (Class)target;
 
@@ -37,7 +39,7 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
         if (proxyClass == null) {
             synchronized (this) {
                 proxyClass = AsyncProxyCache.getProxyClass(returnClass.getName());
-                if(proxyClass == null) {
+                if (proxyClass == null) {
                     Enhancer enhancer = new Enhancer();
                     if (returnClass.isInterface()) {
                         enhancer.setInterfaces(
@@ -66,7 +68,6 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
                 new AsyncProxySerializeInterceptor(),
                 new AsyncToStringMethodInterceptor()});
             proxyObject = AsyncProxyUtils.newInstance(proxyClass);
-
 
         } catch (Exception e) {
 
