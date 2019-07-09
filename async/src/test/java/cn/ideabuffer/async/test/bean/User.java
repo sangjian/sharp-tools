@@ -18,6 +18,7 @@ public class User implements Serializable {
     }
 
     public String getName() {
+        System.out.println("in getName");
         return name;
     }
 

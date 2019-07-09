@@ -2,7 +2,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
     <context:component-scan base-package="cn.ideabuffer.async.test"/>
     <context:annotation-config/>
     <import resource="classpath*:async-spring.xml" />
@@ -10,4 +10,44 @@
         <property name="executor" ref="defaultAsyncExecutor" />
     </bean>
 
+    <bean id="asyncExecutor2" class="cn.ideabuffer.async.core.AsyncExecutor"/>
+
+    <!-- 执行异步任务的线程池TaskExecutor -->
+    <!--<task:executor id="myexecutor" pool-size="5" />-->
+    <!--<task:annotation-driven executor="myexecutor" />-->
+
+    <bean id="testUserService" class="cn.ideabuffer.async.test.service.impl.TestUserServiceImpl" />
+    <bean id="testTransactionService" class="cn.ideabuffer.async.test.service.impl.TestTransactionServiceImpl" />
+    <bean id="testThreadLocalService" class="cn.ideabuffer.async.test.service.impl.TestThreadLocalServiceImpl" />
+
+    <!--<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">-->
+        <!--<property name="url" value="jdbc:mysql://localhost:3306/test?useUnicode=true&amp;characterEncoding=UTF8" />-->
+        <!--<property name="username" value="root" />-->
+        <!--<property name="password" value="sangjian1006" />-->
+
+        <!--<property name="filters" value="stat" />-->
+
+        <!--<property name="maxActive" value="20" />-->
+        <!--<property name="initialSize" value="1" />-->
+        <!--<property name="maxWait" value="60000" />-->
+        <!--<property name="minIdle" value="1" />-->
+
+        <!--<property name="timeBetweenEvictionRunsMillis" value="60000" />-->
+        <!--<property name="minEvictableIdleTimeMillis" value="300000" />-->
+
+        <!--<property name="testWhileIdle" value="true" />-->
+        <!--<property name="testOnBorrow" value="false" />-->
+        <!--<property name="testOnReturn" value="false" />-->
+
+        <!--<property name="poolPreparedStatements" value="true" />-->
+        <!--<property name="maxOpenPreparedStatements" value="20" />-->
+
+        <!--<property name="asyncInit" value="true" />-->
+
+    <!--</bean>-->
+
+    <!--<bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">-->
+              <!--<property name="dataSource" ref="dataSource"/>-->
+    <!--</bean>-->
+    <!--<tx:annotation-driven transaction-manager="txManager"/>-->
 </beans>

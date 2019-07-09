@@ -1,10 +1,12 @@
 package cn.ideabuffer.async.test;
 
-import cn.ideabuffer.async.proxy.AsyncProxyUtils;
+import cn.ideabuffer.async.core.AsyncTemplate;
 import cn.ideabuffer.async.test.bean.User;
+import cn.ideabuffer.async.test.serialize.FastJsonDeserializer;
+import cn.ideabuffer.async.test.serialize.FastJsonSerializer;
 import cn.ideabuffer.async.test.service.TestPrimitiveService;
 import cn.ideabuffer.async.test.service.TestUserService;
-import org.junit.Assert;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
@@ -12,10 +14,12 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.annotation.Resource;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author sangjian.sj
@@ -31,22 +35,51 @@ public class AsyncTest {
     @Resource
     private TestPrimitiveService testPrimitiveService;
 
+    @Resource
+    private AsyncTemplate asyncTemplate;
+
     @Test
-    public void testAsync() {
+    public void testSimpleAsync() throws InterruptedException {
+
         long start = System.currentTimeMillis();
-        User user = testUserService.asyncGetUser("sangjian", 29, 5000);
-        System.out.println("invoke asyncGetUser finished");
-        System.out.println(user);
-        long end = System.currentTimeMillis();
-        assertTrue(end - start < 10000);
+        User user = testUserService.asyncGetUser("sangjian", 29, 1000);
+        System.out.println("invoke asyncGetUser finished, cost:" + (System.currentTimeMillis() - start));
         System.out.println(user.getName());
+    }
+
+    /**
+     * 测试级联调用
+     * @throws InterruptedException
+     * @throws IOException
+     */
+    @Test
+    public void testAsyncChain() throws InterruptedException, IOException {
+        long start = System.currentTimeMillis();
+        List<User> list = new ArrayList<>();
+        for (int i = 0; i < 1000; i++) {
+            User user = testUserService.asyncGetUser("sangjian", i, 0);
+            list.add(user);
+
+        }
+        System.out.println(" async finished ===============");
+        for (int i = 0; i < list.size(); i++) {
+            User user = list.get(i);
+            System.out.println(user.getAge());
+        }
     }
 
     @Test
     public void testGetUserNull() {
-        User user = testUserService.asyncGetUserNull(5000);
+        User user = testUserService.asyncGetUserNull(1000);
         System.out.println("invoke asyncGetUser finished");
-        System.out.println(user.hashCode());
+        System.out.println(user.getName());
+    }
+
+    @Test
+    public void testGetUserNullToString() {
+        User user = testUserService.asyncGetUserNull(1000);
+        System.out.println("invoke asyncGetUser finished");
+        System.out.println(user);
     }
 
     @Test

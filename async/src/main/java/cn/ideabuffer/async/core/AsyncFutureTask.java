@@ -86,8 +86,7 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
             }
             endTime = System.currentTimeMillis();
             if (logger.isDebugEnabled()) {
-                logger.debug("invoking load time:{} timeout:{}, value:{}", this.endTime - this.startTime, timeout,
-                    value.getClass().getName());
+                logger.debug("invoking load time:{} timeout:{}, value:{}", this.endTime - this.startTime, timeout, value);
             }
         } catch (TimeoutException e) {
             super.cancel(true);

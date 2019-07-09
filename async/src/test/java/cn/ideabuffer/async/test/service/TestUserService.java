@@ -5,88 +5,30 @@ import cn.ideabuffer.async.test.bean.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author sangjian.sj
  * @date 2019/06/27
  */
-@Service
-public class TestUserService {
-
-    private static Logger logger = LoggerFactory.getLogger(TestUserService.class);
+public interface TestUserService {
 
     @Async
-    public User asyncGetUser(String name, int age, int sleep) {
-        logger.info("enter asyncGetUser, Thread:{}", Thread.currentThread().getName());
-        User user = getUser(name, age, sleep);
-        logger.info("asyncGetUser invoke getUser finished");
-        try {
-            Thread.sleep(sleep);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        logger.info("asyncGetUser sleep finished, Thread:{}", Thread.currentThread().getName());
-        return user;
-    }
+    //@Transactional
+    User asyncGetUser(String name, int age, int sleep);
 
     @Async
-    public User getUser(String name, int age, int sleep) {
-        logger.info("enter getUser, Thread:{}", Thread.currentThread().getName());
-        try {
-            Thread.sleep(sleep);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        logger.info("getUser sleep finished, Thread:{}", Thread.currentThread().getName());
-        return new User(name, age);
-    }
+    User getUser(String name, int age, int sleep);
 
     @Async
-    public User asyncGetUserNull(int sleep) {
-        logger.info("enter asyncGetUserNull");
-
-        try {
-            Thread.sleep(sleep);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+    User asyncGetUserNull(int sleep);
 
     @Async
-    public User getUserPrivate(String name, int age) {
-        System.out.println("getUserPrivate thread:" + Thread.currentThread().getName());
-        User user = getAsyncUserPrivate(name, age);
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        System.out.println("getUserPrivate sleep finished");
-        return user;
-    }
+    User getUserPrivate(String name, int age);
 
     @Async
-    private User getAsyncUserPrivate(String name, int age) {
-        System.out.println("in getAsyncUserPrivate");
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        System.out.println("getAsyncUserPrivate finished, thread:" + Thread.currentThread().getName());
-        return new User(name, age);
-    }
+    User getException();
 
     @Async
-    public User getException() {
-        System.out.println("in getAsyncUserPrivate");
-        try {
-            Thread.sleep(0);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        throw new NullPointerException("in getException");
-    }
-
+    User asyncGetUser(int sleep);
 }
