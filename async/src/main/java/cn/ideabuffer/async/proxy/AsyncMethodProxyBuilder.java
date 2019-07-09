@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * 结果代理对象builder
+ * 异步方法对应Class的代理builder
  * @author sangjian.sj
  * @date 2019/06/18
  */
