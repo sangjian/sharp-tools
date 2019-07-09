@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 
 /**
+ * 结果代理对象builder
  * @author sangjian.sj
  * @date 2019/06/18
  */
@@ -35,10 +36,11 @@ public class AsyncMethodProxyBuilder implements AsyncProxyBuilder {
             }
             enhancer.setCallbackType(AsyncMethodInterceptor.class);
             proxyClass = enhancer.createClass();
-            logger.debug("create proxy class:{}", targetClass);
+            logger.debug("create method proxy class:{}, proxyClass:{}", targetClass, proxyClass);
             AsyncProxyCache.putProxyClass(AsyncProxyUtils.getOriginClass(target).getName(), proxyClass);
             AsyncProxyCache.putAllProxyMethod(target);
         }
+
         Enhancer.registerCallbacks(proxyClass, new Callback[]{new AsyncMethodInterceptor(target)});
         Object proxyObject;
         try {

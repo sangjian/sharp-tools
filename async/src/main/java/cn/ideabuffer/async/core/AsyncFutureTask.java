@@ -66,13 +66,11 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
 
     @Override
     public void run() {
+        this.runnerThread = Thread.currentThread();
         super.run();
     }
 
     public T getValue() {
-        if (value != null) {
-            return value;
-        }
         startTime = System.currentTimeMillis();
         if (shouldCallback()) {
             callbackContext = new AsyncCallbackContext<>();
@@ -89,7 +87,7 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
             endTime = System.currentTimeMillis();
             if (logger.isDebugEnabled()) {
                 logger.debug("invoking load time:{} timeout:{}, value:{}", this.endTime - this.startTime, timeout,
-                    value);
+                    value.getClass().getName());
             }
         } catch (TimeoutException e) {
             super.cancel(true);
@@ -122,15 +120,7 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
         return callerThread;
     }
 
-    public void setCallerThread(Thread callerThread) {
-        this.callerThread = callerThread;
-    }
-
     public Thread getRunnerThread() {
         return runnerThread;
-    }
-
-    public void setRunnerThread(Thread runnerThread) {
-        this.runnerThread = runnerThread;
     }
 }

@@ -44,7 +44,8 @@ public class AsyncProxyUtils {
         Constructor constructor = null;
         Object[] constructorArgs = new Object[0];
         try {
-            constructor = type.getConstructor(new Class[]{});// 先尝试默认的空构造函数
+            // 默认的空构造函数
+            constructor = type.getConstructor(new Class[]{});
         } catch (NoSuchMethodException e) {
             // ignore
         }
@@ -171,6 +172,14 @@ public class AsyncProxyUtils {
             return returnObj == null;
         } else {
             return ((AsyncProxyResultSupport) returnObj)._isNull();
+        }
+    }
+
+    public static <T> T getOriginResult(Object returnObj, Class<T> returnClass) throws AsyncException {
+        if (returnObj instanceof AsyncProxyResultSupport) {
+            return (T)((AsyncProxyResultSupport)returnObj)._getResult();
+        } else {
+            return (T)returnObj;
         }
     }
 

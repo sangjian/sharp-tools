@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.Callable;
 
 /**
+ * 异步执行模板
  * @author sangjian.sj
  * @date 2019/06/28
  */

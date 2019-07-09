@@ -18,6 +18,8 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
 
     private final static Logger logger = LoggerFactory.getLogger(AsyncResultProxyBuilder.class);
 
+    private final static Object lock = new Object();
+
     private AsyncFutureTask future;
 
     public AsyncResultProxyBuilder(AsyncFutureTask future) {
@@ -34,28 +36,41 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
 
         Class<?> proxyClass = AsyncProxyCache.getProxyClass(returnClass.getName());
         if (proxyClass == null) {
-            Enhancer enhancer = new Enhancer();
-            if (returnClass.isInterface()) {
-                enhancer.setInterfaces(
-                    new Class[] {AsyncProxyResultSupport.class, returnClass, CglibSerializable.class});
-            } else {
-                enhancer.setInterfaces(new Class[] {AsyncProxyResultSupport.class, CglibSerializable.class});
-                enhancer.setSuperclass(returnClass);
+            synchronized (this) {
+                proxyClass = AsyncProxyCache.getProxyClass(returnClass.getName());
+                if(proxyClass == null) {
+                    Enhancer enhancer = new Enhancer();
+                    if (returnClass.isInterface()) {
+                        enhancer.setInterfaces(
+                            new Class[] {AsyncProxyResultSupport.class, returnClass, AsyncSerializable.class});
+                    } else {
+                        enhancer.setInterfaces(new Class[] {AsyncProxyResultSupport.class, AsyncSerializable.class});
+                        enhancer.setSuperclass(returnClass);
+                    }
+
+                    enhancer.setCallbackFilter(new AsyncResultCallbackFilter());
+                    enhancer.setCallbackTypes(
+                        new Class[] {AsyncResultInterceptor.class, AsyncProxyResultInterceptor.class,
+                            AsyncProxySerializeInterceptor.class, AsyncToStringMethodInterceptor.class});
+                    proxyClass = enhancer.createClass();
+                    logger.debug("create result proxy class:{}, proxyClass:{}", returnClass, proxyClass);
+                    AsyncProxyCache.putProxyClass(returnClass.getName(), proxyClass);
+                }
             }
-            enhancer.setCallbackFilter(new AsyncResultCallbackFilter());
-            enhancer.setCallbackTypes(new Class[] {AsyncResultInterceptor.class, AsyncProxyResultInterceptor.class,
-                AsyncProxySerializeInterceptor.class, AsyncToStringMethodInterceptor.class});
-            proxyClass = enhancer.createClass();
-            logger.debug("create result proxy class:{}", returnClass);
-            AsyncProxyCache.putProxyClass(returnClass.getName(), proxyClass);
         }
-        Enhancer.registerCallbacks(proxyClass, new Callback[] {new AsyncResultInterceptor(future),
-            new AsyncProxyResultInterceptor(),
-            new AsyncProxySerializeInterceptor(),
-            new AsyncToStringMethodInterceptor()});
-        Object proxyObject;
+
+        Object proxyObject = null;
+
         try {
+            Enhancer.registerCallbacks(proxyClass, new Callback[] {new AsyncResultInterceptor(),
+                new AsyncProxyResultInterceptor(),
+                new AsyncProxySerializeInterceptor(),
+                new AsyncToStringMethodInterceptor()});
             proxyObject = AsyncProxyUtils.newInstance(proxyClass);
+
+
+        } catch (Exception e) {
+
         } finally {
             Enhancer.registerStaticCallbacks(proxyClass, null);
         }
@@ -72,12 +87,18 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
             if ("writeReplace".equals(method.getName())) {
                 return 2;
             }
-            if (ReflectionUtils.isToStringMethod(method)
-                || ReflectionUtils.isEqualsMethod(method)
-                || ReflectionUtils.isHashCodeMethod(method)) {
+            if (ReflectionUtils.isToStringMethod(method)) {
                 return 3;
             }
             return 0;
+        }
+    }
+
+    class AsyncResultInterceptor implements LazyLoader {
+
+        @Override
+        public Object loadObject() throws Exception {
+            return future.getValue();
         }
     }
 
@@ -86,7 +107,9 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
         @Override
         public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
             Object value = future.getValue();
-            if(value != null) {
+            if (value != null) {
+                logger.info("in toString interceptor, valueClass:{}, thread:{}", value.getClass().getName(),
+                    Thread.currentThread().getName());
                 return value.toString();
             }
             return "null";
@@ -97,14 +120,22 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
 
         @Override
         public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) {
+
             if ("_isNull".equals(method.getName())) {
                 return future.getValue() == null;
             }
             if ("_getResult".equals(method.getName())) {
                 return future.getValue();
             }
+            if ("_getFuture".equals(method.getName())) {
+                return future;
+            }
 
             throw new AsyncException("method[" + method.getName() + "] is not support!");
+        }
+
+        public AsyncFutureTask getFuture() {
+            return future;
         }
     }
 

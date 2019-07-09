@@ -19,7 +19,7 @@ public class AsyncExecutor implements InitializingBean, DisposableBean {
 
     private static final int DEFAULT_MAX_POOL_SIZE = 2 * Runtime.getRuntime().availableProcessors();
 
-    private static final int DEFAULT_QUEUE_CAPACITY = Integer.MAX_VALUE;
+    private static final int DEFAULT_QUEUE_CAPACITY = 64;
 
     private final Object poolSizeMonitor = new Object();
 
@@ -112,7 +112,7 @@ public class AsyncExecutor implements InitializingBean, DisposableBean {
     }
 
     private RejectedExecutionHandler getHandler(RejectMode mode) {
-        return RejectMode.CALLER_RUN == mode ? new ThreadPoolExecutor.CallerRunsPolicy()
+        return RejectMode.CALLER_RUN == mode ? new CallerRunsPolicy()
             : new ThreadPoolExecutor.AbortPolicy();
     }
 
@@ -298,5 +298,31 @@ public class AsyncExecutor implements InitializingBean, DisposableBean {
      */
     public static double getMemoryUsage() {
         return (double) (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / Runtime.getRuntime().maxMemory();
+    }
+
+    public AsyncThreadPool getThreadPoolExecutor() {
+        return threadPoolExecutor;
+    }
+
+    public static class CallerRunsPolicy implements RejectedExecutionHandler {
+        /**
+         * Creates a {@code CallerRunsPolicy}.
+         */
+        public CallerRunsPolicy() { }
+
+        /**
+         * Executes task r in the caller's thread, unless the executor
+         * has been shut down, in which case the task is discarded.
+         *
+         * @param r the runnable task requested to be executed
+         * @param e the executor attempting to execute this task
+         */
+        @Override
+        public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
+            if (!e.isShutdown()) {
+                System.out.println(String.format("time%d\t in rejectedExecution\t\t thread:%s", System.currentTimeMillis(), Thread.currentThread().getName()));
+                r.run();
+            }
+        }
     }
 }

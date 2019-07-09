@@ -3,6 +3,7 @@ package cn.ideabuffer.async.core;
 import java.util.concurrent.*;
 
 /**
+ * 异步线程池
  * @author sangjian.sj
  * @date 2019/06/19
  */
@@ -54,7 +55,7 @@ public class AsyncThreadPool extends ThreadPoolExecutor {
         // 执行之前复制ThreadLocal信息
         if (r instanceof AsyncFutureTask) {
             AsyncFutureTask futureTask = (AsyncFutureTask)r;
-            ThreadLocalTransmitter.copy(futureTask.getCallerThread(), t);
+            //ThreadLocalTransmitter.copy(futureTask.getCallerThread(), t);
         }
 
         super.beforeExecute(t, r);
