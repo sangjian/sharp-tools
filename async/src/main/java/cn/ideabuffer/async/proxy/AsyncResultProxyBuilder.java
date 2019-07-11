@@ -112,7 +112,7 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
                     Thread.currentThread().getName());
                 return value.toString();
             }
-            return "null";
+            return null;
         }
     }
 
