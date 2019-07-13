@@ -12,6 +12,10 @@ import java.lang.annotation.*;
 @Documented
 public @interface Async {
 
+    /**
+     * 指定执行器名称
+     * @return
+     */
     String value() default "";
 
     long timeout() default 0;

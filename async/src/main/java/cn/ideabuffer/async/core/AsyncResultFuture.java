@@ -39,4 +39,8 @@ public class AsyncResultFuture<T> implements Future<T> {
     public T get(long timeout, TimeUnit unit) {
         return result;
     }
+
+    public static <T> Future<T> forValue(T value) {
+        return new AsyncResultFuture<>(value);
+    }
 }

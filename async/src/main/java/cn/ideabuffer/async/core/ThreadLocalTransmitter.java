@@ -23,15 +23,16 @@ public class ThreadLocalTransmitter {
         if (caller == null || runner == null) {
             return;
         }
+        synchronized (caller) {
+            Object callerThreadLocalMap = ReflectionUtils.getField(THREAD_LOCAL_FIELD, caller);
+            if (callerThreadLocalMap != null) {
+                ReflectionUtils.setField(THREAD_LOCAL_FIELD, runner, callerThreadLocalMap);
+            }
 
-        Object callerThreadLocalMap = ReflectionUtils.getField(THREAD_LOCAL_FIELD, caller);
-        if (callerThreadLocalMap != null) {
-            ReflectionUtils.setField(THREAD_LOCAL_FIELD, runner, callerThreadLocalMap);
-        }
-
-        Object callerInheritableThreadLocalMap = ReflectionUtils.getField(INHERITABLE_THREAD_LOCAL_FIELD, caller);
-        if (callerThreadLocalMap != null) {
-            ReflectionUtils.setField(INHERITABLE_THREAD_LOCAL_FIELD, runner, callerInheritableThreadLocalMap);
+            Object callerInheritableThreadLocalMap = ReflectionUtils.getField(INHERITABLE_THREAD_LOCAL_FIELD, caller);
+            if (callerThreadLocalMap != null) {
+                ReflectionUtils.setField(INHERITABLE_THREAD_LOCAL_FIELD, runner, callerInheritableThreadLocalMap);
+            }
         }
     }
 

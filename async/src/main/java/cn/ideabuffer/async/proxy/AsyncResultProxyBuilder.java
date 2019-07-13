@@ -37,7 +37,7 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
 
         Class<?> proxyClass = AsyncProxyCache.getProxyClass(returnClass.getName());
         if (proxyClass == null) {
-            synchronized (this) {
+            synchronized (AsyncResultProxyBuilder.class) {
                 proxyClass = AsyncProxyCache.getProxyClass(returnClass.getName());
                 if (proxyClass == null) {
                     Enhancer enhancer = new Enhancer();
@@ -68,7 +68,6 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
                 new AsyncProxySerializeInterceptor(),
                 new AsyncToStringMethodInterceptor()});
             proxyObject = AsyncProxyUtils.newInstance(proxyClass);
-
         } catch (Exception e) {
 
         } finally {

@@ -55,7 +55,7 @@ public class AsyncThreadPool extends ThreadPoolExecutor {
         // 执行之前复制ThreadLocal信息
         if (r instanceof AsyncFutureTask) {
             AsyncFutureTask futureTask = (AsyncFutureTask)r;
-            //ThreadLocalTransmitter.copy(futureTask.getCallerThread(), t);
+            ThreadLocalTransmitter.copy(futureTask.getCallerThread(), t);
         }
 
         super.beforeExecute(t, r);

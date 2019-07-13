@@ -15,7 +15,7 @@ import java.lang.reflect.Modifier;
  * @author sangjian.sj
  * @date 2019/06/18
  */
-public class AsyncBeanProcessor implements BeanPostProcessor {
+public class AsyncMethodBeanProcessor implements BeanPostProcessor {
 
 
 
