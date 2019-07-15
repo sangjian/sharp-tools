@@ -1,15 +1,18 @@
-package cn.ideabuffer.async.proxy;
+package cn.ideabuffer.async.spring;
 
 import cn.ideabuffer.async.bean.AsyncMethod;
-import cn.ideabuffer.async.cache.AsyncProxyCache;
+import cn.ideabuffer.async.cache.AsyncThreadCache;
 import cn.ideabuffer.async.core.AsyncCallable;
 import cn.ideabuffer.async.core.AsyncExecutor;
 import cn.ideabuffer.async.core.AsyncFutureTask;
 import cn.ideabuffer.async.core.AsyncProxyResultSupport;
 import cn.ideabuffer.async.exception.AsyncException;
+import cn.ideabuffer.async.cache.AsyncProxyCache;
+import cn.ideabuffer.async.proxy.AsyncProxyUtils;
+import cn.ideabuffer.async.proxy.AsyncResultProxyBuilder;
 import cn.ideabuffer.async.util.SpringApplicationContextHolder;
-import net.sf.cglib.proxy.MethodInterceptor;
-import net.sf.cglib.proxy.MethodProxy;
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,28 +20,44 @@ import java.lang.reflect.Method;
 
 /**
  * @author sangjian.sj
- * @date 2019/06/18
+ * @date 2019/07/13
  */
-public class AsyncMethodInterceptor implements MethodInterceptor {
+public class AsyncAutoProxyMethodInterceptor implements MethodInterceptor {
 
-    private final static Logger logger = LoggerFactory.getLogger(AsyncMethodInterceptor.class);
+    private final Logger logger = LoggerFactory.getLogger(AsyncAutoProxyMethodInterceptor.class);
 
-    private Object targetObject;
-
-    public AsyncMethodInterceptor(Object targetObject) {
-
-        this.targetObject = targetObject;
+    public AsyncAutoProxyMethodInterceptor() {
+        System.out.println("hhh");
     }
 
     @Override
-    public Object intercept(Object obj, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
-        final String methodKey = AsyncProxyUtils.genMethodKey(targetObject, method);
-        final AsyncMethod asyncMethod = AsyncProxyCache.getProxyMethod(methodKey);
+    public Object invoke(MethodInvocation invocation) throws Throwable {
+        Object targetObject = invocation.getThis();
+        Method method = invocation.getMethod();
+        Object[] args = invocation.getArguments();
+        String methodKey = AsyncProxyUtils.genMethodKey(targetObject, method);
+        AsyncMethod proxyMethod = AsyncProxyCache.getProxyMethod(methodKey);
 
-        if (asyncMethod == null || (
-            !AsyncProxyUtils.canProxy(method.getReturnType()))
+        if(proxyMethod == null) {
+            AsyncProxyCache.putAllProxyMethod(targetObject);
+            proxyMethod = AsyncProxyCache.getProxyMethod(methodKey);
+        }
+        final AsyncMethod asyncMethod = proxyMethod;
+
+        if(asyncMethod == null) {
+            return invocation.proceed();
+        }
+
+        // 是否允许级联调用
+        boolean allowCascade = asyncMethod.isAllowCascade();
+
+        if(!allowCascade && AsyncThreadCache.isAsyncThread(Thread.currentThread())) {
+            return invocation.proceed();
+        }
+
+        if (!AsyncProxyUtils.canProxy(method.getReturnType())
             && !AsyncProxyUtils.isVoid(method.getReturnType())) {
-            return method.invoke(targetObject, args);
+            return invocation.proceed();
         }
 
         AsyncExecutor executor = asyncMethod.getExecutor();
@@ -54,8 +73,8 @@ public class AsyncMethodInterceptor implements MethodInterceptor {
         if (executor.isShutdown()) {
             return method.invoke(targetObject, args);
         }
-
-        final Object[] finArgs = args;
+        // 是否允许ThreadLocal传递
+        boolean allowThreadLocalTransfer = asyncMethod.isAllowThreadLocalTransfer();
 
         // 先创建Future，然后创建代理对象；
         // 否则如果开启了ThreadLocal复制，会出现ThreadLocal被覆盖，导致task对应的Future不正确，出现死锁的情况
@@ -64,7 +83,7 @@ public class AsyncMethodInterceptor implements MethodInterceptor {
             @Override
             public Object call() {
                 try {
-                    Object result = methodProxy.invokeSuper(obj, finArgs);
+                    Object result = invocation.proceed();
                     // 如果返回的结果是代理对象，需要等待代理对象对应的任务执行完
                     if (result instanceof AsyncProxyResultSupport) {
                         AsyncFutureTask futureTask = ((AsyncProxyResultSupport)result)._getFuture();
@@ -92,7 +111,7 @@ public class AsyncMethodInterceptor implements MethodInterceptor {
             public long getTimeout() {
                 return asyncMethod.getTimeout();
             }
-        });
+        }, allowThreadLocalTransfer);
 
         if (AsyncProxyUtils.isVoid(method.getReturnType())) {
             executor.execute(future);
@@ -102,5 +121,4 @@ public class AsyncMethodInterceptor implements MethodInterceptor {
         executor.execute(future);
         return result;
     }
-
 }

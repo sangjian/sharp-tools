@@ -45,6 +45,7 @@ public class AsyncExecutor implements InitializingBean, DisposableBean {
     private AsyncThreadPool threadPoolExecutor;
 
     public AsyncExecutor() {
+        System.out.println("in AsyncExecutor");
     }
 
     public AsyncExecutor(int nThreads) {
@@ -87,7 +88,7 @@ public class AsyncExecutor implements InitializingBean, DisposableBean {
 
         AsyncThreadPool executor = new AsyncThreadPool(
             this.corePoolSize, this.maxPoolSize, this.keepAliveSeconds, TimeUnit.SECONDS,
-            queue, new AsyncThreadFactory(), getHandler(rejectMode));
+            queue, new DefaultAsyncThreadFactory(), getHandler(rejectMode));
 
         if (this.allowCoreThreadTimeOut) {
             executor.allowCoreThreadTimeOut(true);

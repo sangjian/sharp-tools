@@ -1,5 +1,6 @@
 package cn.ideabuffer.async.proxy;
 
+import cn.ideabuffer.async.cache.AsyncProxyCache;
 import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.Enhancer;
 import org.slf4j.Logger;

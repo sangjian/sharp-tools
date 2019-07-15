@@ -1,5 +1,6 @@
 package cn.ideabuffer.async.proxy;
 
+import cn.ideabuffer.async.cache.AsyncProxyCache;
 import cn.ideabuffer.async.core.AsyncFutureTask;
 import cn.ideabuffer.async.core.AsyncProxyResultSupport;
 import cn.ideabuffer.async.exception.AsyncException;

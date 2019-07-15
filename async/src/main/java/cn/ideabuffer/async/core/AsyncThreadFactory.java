@@ -1,5 +1,7 @@
 package cn.ideabuffer.async.core;
 
+import cn.ideabuffer.async.cache.AsyncThreadCache;
+
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -7,30 +9,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author sangjian.sj
  * @date 2019/06/18
  */
-public class AsyncThreadFactory implements ThreadFactory {
-
-    private static final AtomicInteger poolNumber = new AtomicInteger(1);
-    private final ThreadGroup group;
-    private final AtomicInteger threadNumber = new AtomicInteger(1);
-    private final String namePrefix;
-
-    AsyncThreadFactory() {
-        SecurityManager s = System.getSecurityManager();
-        group = (s != null) ? s.getThreadGroup() :
-            Thread.currentThread().getThreadGroup();
-        namePrefix = "async-pool-" + poolNumber.getAndIncrement() + "-thread-";
-    }
+public abstract class AsyncThreadFactory implements ThreadFactory {
 
     @Override
-    public Thread newThread(Runnable r) {
-        Thread t = new Thread(group, r,namePrefix + threadNumber.getAndIncrement(),
-            0);
-        if (t.isDaemon()) {
-            t.setDaemon(false);
-        }
-        if (t.getPriority() != Thread.NORM_PRIORITY) {
-            t.setPriority(Thread.NORM_PRIORITY);
-        }
+    public final Thread newThread(Runnable r) {
+        Thread t = doNewThread(r);
+        AsyncThreadCache.addAsyncThread(t);
         return t;
     }
+
+    public abstract Thread doNewThread(Runnable r);
 }

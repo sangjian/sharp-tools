@@ -9,23 +9,9 @@ import java.util.concurrent.*;
  */
 public class AsyncThreadPool extends ThreadPoolExecutor {
 
-    public AsyncThreadPool(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
-        BlockingQueue<Runnable> workQueue) {
-        super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
-    }
 
     public AsyncThreadPool(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
-        BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory) {
-        super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory);
-    }
-
-    public AsyncThreadPool(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
-        BlockingQueue<Runnable> workQueue, RejectedExecutionHandler handler) {
-        super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, handler);
-    }
-
-    public AsyncThreadPool(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
-        BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory,
+        BlockingQueue<Runnable> workQueue, AsyncThreadFactory threadFactory,
         RejectedExecutionHandler handler) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
     }
@@ -55,7 +41,9 @@ public class AsyncThreadPool extends ThreadPoolExecutor {
         // 执行之前复制ThreadLocal信息
         if (r instanceof AsyncFutureTask) {
             AsyncFutureTask futureTask = (AsyncFutureTask)r;
-            ThreadLocalTransmitter.copy(futureTask.getCallerThread(), t);
+            if(futureTask.isAllowThreadLocalTransfer()) {
+                ThreadLocalTransmitter.copy(futureTask.getCallerThread(), t);
+            }
         }
 
         super.beforeExecute(t, r);

@@ -1,7 +1,8 @@
-package cn.ideabuffer.async.proxy;
+package cn.ideabuffer.async.cache;
 
 import cn.ideabuffer.async.annotation.Async;
 import cn.ideabuffer.async.bean.AsyncMethod;
+import cn.ideabuffer.async.proxy.AsyncProxyUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 
 import java.lang.reflect.Method;
@@ -44,10 +45,11 @@ public class AsyncProxyCache {
             Async annotation = AnnotationUtils.findAnnotation(method, Async.class);
             if (annotation != null) {
                 String executorName = annotation.value();
-                if("".equals(executorName)) {
+                if ("".equals(executorName)) {
                     executorName = DEFAULT_EXECUTOR_NAME;
                 }
-                AsyncMethod asyncMethod = new AsyncMethod(target, method, annotation.timeout(), executorName);
+                AsyncMethod asyncMethod = new AsyncMethod(target, method, annotation.timeout(), executorName, null,
+                    annotation.allowThreadLocalTransfer(), annotation.allowCascade());
                 putProxyMethod(AsyncProxyUtils.genMethodKey(target, method), asyncMethod);
             }
         }

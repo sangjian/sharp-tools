@@ -36,17 +36,19 @@ public class AsyncMethod {
 
     private AsyncExecutor executor;
 
-    public AsyncMethod(Object target, Method method, long timeout, String executorName) {
-        this(target, method, timeout, executorName, null);
-    }
+    private boolean allowThreadLocalTransfer;
+
+    private boolean allowCascade;
 
     public AsyncMethod(Object target, Method method, long timeout, String executorName,
-        AsyncExecutor executor) {
+        AsyncExecutor executor, boolean allowThreadLocalTransfer, boolean allowCascade) {
         this.target = target;
         this.method = method;
         this.timeout = timeout;
         this.executorName = executorName;
         this.executor = executor;
+        this.allowThreadLocalTransfer = allowThreadLocalTransfer;
+        this.allowCascade = allowCascade;
     }
 
     public Object getTarget() {
@@ -87,5 +89,21 @@ public class AsyncMethod {
 
     public void setExecutor(AsyncExecutor executor) {
         this.executor = executor;
+    }
+
+    public boolean isAllowThreadLocalTransfer() {
+        return allowThreadLocalTransfer;
+    }
+
+    public void setAllowThreadLocalTransfer(boolean allowThreadLocalTransfer) {
+        this.allowThreadLocalTransfer = allowThreadLocalTransfer;
+    }
+
+    public boolean isAllowCascade() {
+        return allowCascade;
+    }
+
+    public void setAllowCascade(boolean allowCascade) {
+        this.allowCascade = allowCascade;
     }
 }

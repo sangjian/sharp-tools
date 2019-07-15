@@ -18,5 +18,17 @@ public @interface Async {
      */
     String value() default "";
 
+    /**
+     * 是否开启ThreadLocal传递
+     * @return
+     */
+    boolean allowThreadLocalTransfer() default false;
+
+    /**
+     * 是否允许异步级联调用
+     * @return
+     */
+    boolean allowCascade() default false;
+
     long timeout() default 0;
 }

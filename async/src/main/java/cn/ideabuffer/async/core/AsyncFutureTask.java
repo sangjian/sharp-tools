@@ -36,14 +36,25 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
 
     private AsyncCallbackContext<T> callbackContext;
 
+    private boolean allowThreadLocalTransfer;
+
     public AsyncFutureTask(AsyncCallable<T> callable) {
-        this(callable, null);
+        this(callable, false, null);
+    }
+
+    public AsyncFutureTask(AsyncCallable<T> callable, boolean allowThreadLocalTransfer) {
+        this(callable, allowThreadLocalTransfer, null);
     }
 
     public AsyncFutureTask(AsyncCallable<T> callable, AsyncCallback<T> callback) {
+        this(callable, false, callback);
+    }
+
+    public AsyncFutureTask(AsyncCallable<T> callable, boolean allowThreadLocalTransfer, AsyncCallback<T> callback) {
         super(callable);
         this.timeout = callable.getTimeout();
         this.callerThread = Thread.currentThread();
+        this.allowThreadLocalTransfer = allowThreadLocalTransfer;
         if (callback != null) {
             this.callback = callback;
         }
@@ -121,5 +132,13 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
 
     public Thread getRunnerThread() {
         return runnerThread;
+    }
+
+    public boolean isAllowThreadLocalTransfer() {
+        return allowThreadLocalTransfer;
+    }
+
+    public void setAllowThreadLocalTransfer(boolean allowThreadLocalTransfer) {
+        this.allowThreadLocalTransfer = allowThreadLocalTransfer;
     }
 }

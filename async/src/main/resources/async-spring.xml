@@ -3,7 +3,11 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="asyncBeanProcessor" class="cn.ideabuffer.async.processor.AsyncMethodBeanProcessor" />
-    <bean id="defaultAsyncExecutor" class="cn.ideabuffer.async.core.AsyncExecutor"/>
     <bean id="springApplicationContextHolder" class="cn.ideabuffer.async.util.SpringApplicationContextHolder" />
+    <bean id="asyncAutoProxyMethodInterceptor" class="cn.ideabuffer.async.spring.AsyncAutoProxyMethodInterceptor" depends-on="springApplicationContextHolder"/>
+    <bean id="asyncAutoProxyCreator" class="cn.ideabuffer.async.spring.AsyncAutoProxyCreator">
+        <property name="asyncAutoProxyMethodInterceptor" ref="asyncAutoProxyMethodInterceptor" />
+    </bean>
+
+    <bean id="defaultAsyncExecutor" class="cn.ideabuffer.async.core.AsyncExecutor"/>
 </beans>
