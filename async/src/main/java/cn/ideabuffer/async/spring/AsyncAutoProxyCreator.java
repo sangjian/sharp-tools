@@ -21,7 +21,7 @@ public class AsyncAutoProxyCreator extends AbstractAutoProxyCreator {
     protected Object[] getAdvicesAndAdvisorsForBean(Class<?> beanClass, String beanName, TargetSource customTargetSource) {
         Method[] methods = beanClass.getDeclaredMethods();
         if (methods == null || methods.length == 0) {
-            return new Object[0];
+            return DO_NOT_PROXY;
         }
         for (Method method : methods) {
             Async annotation = AnnotationUtils.findAnnotation(method, Async.class);
