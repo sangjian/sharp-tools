@@ -37,11 +37,6 @@ public class AsyncExecutor implements InitializingBean, DisposableBean {
 
     private volatile boolean inited = false;
 
-    /**
-     * 动态扩容标志
-     */
-    private volatile boolean dynamicExpand = false;
-
     private AsyncThreadPool threadPoolExecutor;
 
     public AsyncExecutor() {
@@ -268,14 +263,6 @@ public class AsyncExecutor implements InitializingBean, DisposableBean {
 
     public void setAllowCoreThreadTimeOut(boolean allowCoreThreadTimeOut) {
         this.allowCoreThreadTimeOut = allowCoreThreadTimeOut;
-    }
-
-    public boolean isDynamicExpand() {
-        return dynamicExpand;
-    }
-
-    public void setDynamicExpand(boolean dynamicExpand) {
-        this.dynamicExpand = dynamicExpand;
     }
 
     /**
