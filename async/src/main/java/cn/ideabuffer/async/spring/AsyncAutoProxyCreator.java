@@ -29,7 +29,7 @@ public class AsyncAutoProxyCreator extends AbstractAutoProxyCreator {
                 return new Object[]{asyncAutoProxyMethodInterceptor};
             }
         }
-        return new Object[0];
+        return DO_NOT_PROXY;
     }
 
     public void setAsyncAutoProxyMethodInterceptor(
