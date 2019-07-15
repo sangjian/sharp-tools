@@ -45,7 +45,6 @@ public class AsyncExecutor implements InitializingBean, DisposableBean {
     private AsyncThreadPool threadPoolExecutor;
 
     public AsyncExecutor() {
-        System.out.println("in AsyncExecutor");
     }
 
     public AsyncExecutor(int nThreads) {

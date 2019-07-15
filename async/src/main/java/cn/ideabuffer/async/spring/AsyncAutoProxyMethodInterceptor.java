@@ -27,7 +27,6 @@ public class AsyncAutoProxyMethodInterceptor implements MethodInterceptor {
     private final Logger logger = LoggerFactory.getLogger(AsyncAutoProxyMethodInterceptor.class);
 
     public AsyncAutoProxyMethodInterceptor() {
-        System.out.println("hhh");
     }
 
     @Override
