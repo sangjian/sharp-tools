@@ -17,8 +17,6 @@ import java.util.Map;
  */
 public class AsyncProxyUtils {
 
-    private static AsyncProxyBuilder cgLibMethodProxyBuilder = new AsyncMethodProxyBuilder();
-
     private static final Map<Class<?>, Object> PRIMITIVE_VALUE_MAP = new HashMap<>(16);
 
     static {
@@ -101,16 +99,6 @@ public class AsyncProxyUtils {
         } else {
             return null;
         }
-    }
-
-    public static AsyncProxyBuilder getAsyncMethodProxyBuilder(ProxyTypeEnum proxyType) {
-        switch (proxyType) {
-            case CGLIB:
-                return cgLibMethodProxyBuilder;
-            default:
-                break;
-        }
-        return cgLibMethodProxyBuilder;
     }
 
     public static Class<?> getOriginClass(Object object) {
