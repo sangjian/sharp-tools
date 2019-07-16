@@ -7,8 +7,11 @@ import cn.ideabuffer.async.test.serialize.FastJsonSerializer;
 import cn.ideabuffer.async.test.service.TestPrimitiveService;
 import cn.ideabuffer.async.test.service.TestUserService;
 
+import cn.ideabuffer.async.test.service.impl.TestUserServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -18,6 +21,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 
@@ -29,8 +34,10 @@ import java.util.concurrent.Future;
 @ContextConfiguration(locations = {"classpath:spring-context.xml"})
 public class AsyncTest {
 
+    private final Logger logger = LoggerFactory.getLogger(AsyncTest.class);
+
     @Resource
-    private TestUserService testUserService;
+    private TestUserServiceImpl testUserService;
 
     @Resource
     private TestPrimitiveService testPrimitiveService;
@@ -38,13 +45,28 @@ public class AsyncTest {
     @Resource
     private AsyncTemplate asyncTemplate;
 
+    private ExecutorService executor = Executors.newFixedThreadPool(1);
+
     @Test
     public void testSimpleAsync() throws InterruptedException {
-
         long start = System.currentTimeMillis();
-        User user = testUserService.asyncGetUser("sangjian", 29, 1000);
-        System.out.println("invoke asyncGetUser finished, cost:" + (System.currentTimeMillis() - start));
-        System.out.println(user.getName());
+        logger.debug("before invoke getUser");
+        User user1 = testUserService.getUser("aaa", 11, 2000);
+        //User user2 = testUserService.getUser("bbb", 22, 2000);
+        logger.debug("after invoke getUser");
+        logger.debug("async invoke getUser cost:{}", System.currentTimeMillis() - start);
+        logger.debug("user1:{}", user1);
+        //logger.debug("user2:{}", user2);
+        logger.debug("total cost:{}", System.currentTimeMillis() - start);
+    }
+
+    @Test
+    public void testAsync() throws InterruptedException, IOException {
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < 1000; i++) {
+            User user = testUserService.asyncGetUser("sangjian", i, 0);
+            System.out.println(user.getAge());
+        }
     }
 
     /**
@@ -56,7 +78,7 @@ public class AsyncTest {
     public void testAsyncChain() throws InterruptedException, IOException {
         long start = System.currentTimeMillis();
         List<User> list = new ArrayList<>();
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 10000; i++) {
             User user = testUserService.asyncGetUser("sangjian", i, 0);
             list.add(user);
 
@@ -85,7 +107,6 @@ public class AsyncTest {
     @Test
     public void testGetInt() throws ExecutionException, InterruptedException {
         Future<Integer> future = testPrimitiveService.getInt();
-        System.out.println("invoke testGetInt finished");
         System.out.println(future.get());
     }
 
@@ -97,10 +118,37 @@ public class AsyncTest {
     }
 
     @Test
+    public void testTimeout() throws ExecutionException, InterruptedException {
+        User user = testUserService.getUserTimeout(3000);
+        System.out.println("invoke testTimeout finished");
+        System.out.println(user);
+    }
+
+    @Test
     public void testVoid() throws ExecutionException, InterruptedException {
         testPrimitiveService.getVoid();
         System.out.println("invoke testVoid finished");
         Thread.sleep(5000);
+    }
+
+    @Test
+    public void testList() throws InterruptedException {
+        List<User> list = testUserService.getUserList(5000);
+        System.out.println("getUserList finished");
+        System.out.println(list);
+    }
+
+    @Test
+    public void testTransactional() throws InterruptedException {
+        User user = testUserService.testTransactional();
+        System.out.println("testTransactional finished");
+        System.out.println(user);
+    }
+
+    public static void main(String[] args) {
+        for (int i = 103; i < 201; i++) {
+            System.out.print(i + ",");
+        }
     }
 
 }

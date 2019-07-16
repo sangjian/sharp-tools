@@ -4,27 +4,36 @@ import cn.ideabuffer.async.annotation.Async;
 import cn.ideabuffer.async.core.AsyncTemplate;
 import cn.ideabuffer.async.test.bean.User;
 import cn.ideabuffer.async.test.service.TestUserService;
+import cn.ideabuffer.async.test.service.TestUserService2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author sangjian.sj
  * @date 2019/07/07
  */
-public class TestUserServiceImpl implements TestUserService {
-    private static Logger logger = LoggerFactory.getLogger(TestUserService.class);
+public class TestUserServiceImpl {
+    private static Logger logger = LoggerFactory.getLogger(TestUserServiceImpl.class);
 
     @Resource
     private AsyncTemplate asyncTemplate;
 
-    @Override
+    @Resource
+    private TestUserService2 testUserService2;
+
+    private String test;
+
+    //@Override
     public User asyncGetUser(String name, int age, int sleep) {
         System.out.println(String.format("time:%d\tenter asyncGetUser\tthread:%s", System.currentTimeMillis(), Thread.currentThread().getName()));
         //User user = asyncTemplate.submit(() -> getUser(name, age, sleep), User.class);
-        User user = getUser(name, age, sleep);
+        User user = testUserService2.getUser(name, age, sleep);
         System.out.println(String.format("time:%d\tasyncGetUser invoke getUser finished\tuserClass:%s", System.currentTimeMillis(), user.getClass().getName()));
         try {
             Thread.sleep(sleep);
@@ -36,10 +45,10 @@ public class TestUserServiceImpl implements TestUserService {
         return user;
     }
 
-    @Override
+    //@Override
     public User getUser(String name, int age, int sleep) {
-        System.out.println(String.format("time:%d\tenter getUser\t\tthread:%s", System.currentTimeMillis(), Thread.currentThread().getName()));
         try {
+
             Thread.sleep(sleep);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -48,7 +57,7 @@ public class TestUserServiceImpl implements TestUserService {
         return new User(name, age);
     }
 
-    @Override
+    //@Override
     public User asyncGetUserNull(int sleep) {
         logger.info("enter asyncGetUserNull");
 
@@ -60,7 +69,7 @@ public class TestUserServiceImpl implements TestUserService {
         return null;
     }
 
-    @Override
+    //@Override
     public User getUserPrivate(String name, int age) {
         System.out.println("getUserPrivate thread:" + Thread.currentThread().getName());
         User user = getAsyncUserPrivate(name, age);
@@ -84,7 +93,7 @@ public class TestUserServiceImpl implements TestUserService {
         return new User(name, age);
     }
 
-    @Override
+    //@Override
     public User getException() {
         System.out.println("in getAsyncUserPrivate");
         try {
@@ -95,7 +104,7 @@ public class TestUserServiceImpl implements TestUserService {
         throw new NullPointerException("in getException");
     }
 
-    @Override
+    //@Override
     public User asyncGetUser(int sleep) {
         logger.info("enter asyncGetUser");
 
@@ -107,4 +116,30 @@ public class TestUserServiceImpl implements TestUserService {
         return new User("sangjian", 29);
     }
 
+    //@Override
+    public List<User> getUserList(int sleep) throws InterruptedException {
+        if(sleep > 0) {
+            Thread.sleep(sleep);
+        }
+        List<User> list = new ArrayList<>();
+        list.add(new User("aaa", 12));
+        return list;
+    }
+
+    @Async(timeout = 1000)
+    //@Override
+    public User getUserTimeout(int sleep) {
+        try {
+            Thread.sleep(sleep);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return new User("test", 1);
+    }
+
+    @Transactional
+    //@Override
+    public User testTransactional() {
+        return null;
+    }
 }

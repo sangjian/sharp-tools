@@ -7,14 +7,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 /**
  * @author sangjian.sj
  * @date 2019/06/27
  */
 public interface TestUserService {
 
-    @Async
-    //@Transactional
+    @Async(allowCascade = false)
     User asyncGetUser(String name, int age, int sleep);
 
     @Async
@@ -31,4 +32,13 @@ public interface TestUserService {
 
     @Async
     User asyncGetUser(int sleep);
+
+    @Async
+    List<User> getUserList(int sleep) throws InterruptedException;
+
+    User getUserTimeout(int sleep);
+
+    @Async
+    @Transactional
+    User testTransactional();
 }

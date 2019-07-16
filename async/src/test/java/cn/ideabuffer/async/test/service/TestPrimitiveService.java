@@ -24,7 +24,7 @@ public class TestPrimitiveService {
             e.printStackTrace();
         }
 
-        return new AsyncResultFuture<>(1);
+        return AsyncResultFuture.forValue(1);
     }
 
     @Async
