@@ -3,7 +3,6 @@ package cn.ideabuffer.async.spring;
 import cn.ideabuffer.async.annotation.Async;
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator;
-import org.springframework.beans.BeansException;
 import org.springframework.core.annotation.AnnotationUtils;
 
 import java.lang.reflect.Method;

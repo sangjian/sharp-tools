@@ -115,7 +115,7 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
             }
         }
         if(throwable != null) {
-            logger.error("getValue error", throwable);
+            logger.error("getValue encountered problem!", throwable);
             throw new AsyncException("getValue encountered problem!", throwable);
         }
 
