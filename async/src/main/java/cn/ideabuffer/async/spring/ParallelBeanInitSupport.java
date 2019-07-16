@@ -1,7 +1,6 @@
 package cn.ideabuffer.async.spring;
 
 import org.springframework.aop.TargetSource;
-import org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator;
 import org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -9,10 +8,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory;
-import org.springframework.beans.factory.support.AbstractBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -22,22 +18,40 @@ import org.springframework.util.StringUtils;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author sangjian.sj
  * @date 2019/07/15
  */
-public class AsyncBeanInitAutoProxyCreator extends BeanNameAutoProxyCreator implements ApplicationContextAware {
+public class ParallelBeanInitSupport extends BeanNameAutoProxyCreator implements InitializingBean, ApplicationContextAware {
+
+    private ApplicationContext applicationContext;
 
     private List<String> parallelInitBeanNames;
 
     private boolean parallelAll;
 
-    private ApplicationContext applicationContext;
+    private int threadNum = 32;
 
-    private ExecutorService beanInitExecutor = Executors.newFixedThreadPool(4);
+    private int keepAliveSeconds = 300;
+
+    private int queueCapacity = Integer.MAX_VALUE;
+
+    private ExecutorService beanInitExecutor;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        init();
+    }
+
+    private void init() {
+        super.setOptimize(true);
+        beanInitExecutor = new ThreadPoolExecutor(
+            this.threadNum, this.threadNum, this.keepAliveSeconds, TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(queueCapacity), new ParallelBeanInitThreadFactory(), new ThreadPoolExecutor.CallerRunsPolicy());
+    }
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext)
@@ -58,8 +72,16 @@ public class AsyncBeanInitAutoProxyCreator extends BeanNameAutoProxyCreator impl
         this.parallelAll = parallelAll;
     }
 
-    public void setBeanInitExecutor(ExecutorService beanInitExecutor) {
-        this.beanInitExecutor = beanInitExecutor;
+    public void setThreadNum(int threadNum) {
+        this.threadNum = threadNum;
+    }
+
+    public void setKeepAliveSeconds(int keepAliveSeconds) {
+        this.keepAliveSeconds = keepAliveSeconds;
+    }
+
+    public void setQueueCapacity(int queueCapacity) {
+        this.queueCapacity = queueCapacity;
     }
 
     @Override
@@ -130,7 +152,7 @@ public class AsyncBeanInitAutoProxyCreator extends BeanNameAutoProxyCreator impl
         }
 
         if(isInitializingBean || hasInitMethod) {
-            return new Object[]{new AsyncBeanInitAutoProxyMethodInterceptor(initMethodName, beanInitExecutor)};
+            return new Object[]{new ParallelBeanInitMethodInterceptor(beanName, initMethodName, beanInitExecutor)};
         }
         return DO_NOT_PROXY;
     }
@@ -143,5 +165,35 @@ public class AsyncBeanInitAutoProxyCreator extends BeanNameAutoProxyCreator impl
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) {
         return bean;
+    }
+
+    static class ParallelBeanInitThreadFactory implements ThreadFactory {
+        private static final AtomicInteger poolNumber = new AtomicInteger(1);
+        private final ThreadGroup group;
+        private final AtomicInteger threadNumber = new AtomicInteger(1);
+        private final String namePrefix;
+
+        ParallelBeanInitThreadFactory() {
+            SecurityManager s = System.getSecurityManager();
+            group = (s != null) ? s.getThreadGroup() :
+                Thread.currentThread().getThreadGroup();
+            namePrefix = "parallel-bean-init-pool-" +
+                poolNumber.getAndIncrement() +
+                "-thread-";
+        }
+
+        @Override
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(group, r,
+                namePrefix + threadNumber.getAndIncrement(),
+                0);
+            if (t.isDaemon()) {
+                t.setDaemon(false);
+            }
+            if (t.getPriority() != Thread.NORM_PRIORITY) {
+                t.setPriority(Thread.NORM_PRIORITY);
+            }
+            return t;
+        }
     }
 }

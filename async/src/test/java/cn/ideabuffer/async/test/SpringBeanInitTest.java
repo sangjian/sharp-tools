@@ -22,7 +22,10 @@ public class SpringBeanInitTest {
 
     @Test
     public void test() {
+        long start = System.currentTimeMillis();
         springTestInitMethodService.test();
+        long end = System.currentTimeMillis();
+        System.out.println("total cost:" + (end - start));
     }
 
 }

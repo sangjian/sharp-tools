@@ -2,9 +2,10 @@ package cn.ideabuffer.async.spring;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
-import java.lang.reflect.Method;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -12,7 +13,11 @@ import java.util.concurrent.Future;
  * @author sangjian.sj
  * @date 2019/07/15
  */
-public class AsyncBeanInitAutoProxyMethodInterceptor implements MethodInterceptor {
+public class ParallelBeanInitMethodInterceptor implements MethodInterceptor {
+
+    private static final Logger logger = LoggerFactory.getLogger(ParallelBeanInitMethodInterceptor.class);
+
+    private String beanName;
 
     private String initMethodName;
 
@@ -24,7 +29,8 @@ public class AsyncBeanInitAutoProxyMethodInterceptor implements MethodIntercepto
 
     private volatile boolean inited;
 
-    public AsyncBeanInitAutoProxyMethodInterceptor(String initMethodName, ExecutorService beanInitExecutor) {
+    public ParallelBeanInitMethodInterceptor(String beanName, String initMethodName, ExecutorService beanInitExecutor) {
+        this.beanName = beanName;
         this.initMethodName = initMethodName;
         this.beanInitExecutor = beanInitExecutor;
         inited = false;
@@ -39,10 +45,10 @@ public class AsyncBeanInitAutoProxyMethodInterceptor implements MethodIntercepto
         boolean isInitializingBean = bean instanceof InitializingBean;
         String methodName = invocation.getMethod().getName();
         if(!methodName.equals(initMethodName) && !(isInitializingBean && "afterPropertiesSet".equals(methodName))) {
-            if(isInitializingBean) {
+            if(afterPropertiesSetFuture != null) {
                 afterPropertiesSetFuture.get();
             }
-            if(methodName.equals(initMethodName)) {
+            if(initMethodFuture != null) {
                 initMethodFuture.get();
             }
             inited = true;
@@ -51,13 +57,16 @@ public class AsyncBeanInitAutoProxyMethodInterceptor implements MethodIntercepto
 
         Future<?> future = beanInitExecutor.submit(() -> {
             try {
+                logger.info("parallel init method start, beanName:{}, method:{}", beanName, methodName);
                 invocation.proceed();
+                logger.info("parallel init method end, beanName:{}, method:{}", beanName, methodName);
             } catch (Throwable throwable) {
-                throwable.printStackTrace();
+                logger.error("init method:[{}] proceed error.", methodName, throwable);
+                throw new RuntimeException(String.format("init method:[%s] proceed error.", methodName), throwable);
             }
         });
 
-        if(isInitializingBean) {
+        if(isInitializingBean && "afterPropertiesSet".equals(methodName)) {
             afterPropertiesSetFuture = future;
         } else {
             initMethodFuture = future;
