@@ -55,12 +55,8 @@
     </bean>
     <tx:annotation-driven transaction-manager="txManager"/>
 
-    <bean id="springTestInitMethodService" class="cn.ideabuffer.async.test.spring.SpringTestInitMethodService" init-method="init"/>
-    <bean id="parallelBeanInitSupport" class="cn.ideabuffer.async.spring.ParallelBeanInitSupport">
-        <property name="parallelInitBeanNames">
-            <list>
-                <value>springTestInitMethodService</value>
-            </list>
-        </property>
-    </bean>
+    <!--<bean id="springTestInitMethodService" class="cn.ideabuffer.async.test.spring.SpringTestInitMethodService" init-method="init"/>-->
+    <!--<bean id="parallelBeanInitSupport" class="cn.ideabuffer.async.spring.ParallelBeanInitSupport">-->
+        <!--<property name="parallelInitBeanNames" value="readServices,uicCacheService,mtopHsfagent,flowSystemStarter$hidden,uniqloLiaoyuanResource,ipmTairCache,c2cRefundNotifyManager,tcRefundNotifyManager,c2cAfterSalesNotifyManager,tmallRefundNotifyManager,itemPunishNotifyManager,auctionIcNotifyManager,fpNotifySubScriber,autionCreatNotifySubscribe,bailCallBackSubscribe,snsCommentConsumer,industryQualityCertConsumer,metaVideoConsumer,certResultConsumer,metaMessageProducer,opLogFactory,pullService"/>-->
+    <!--</bean>-->
 </beans>

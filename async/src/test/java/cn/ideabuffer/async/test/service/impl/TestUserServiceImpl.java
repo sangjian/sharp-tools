@@ -30,6 +30,7 @@ public class TestUserServiceImpl {
     private String test;
 
     //@Override
+    @Async
     public User asyncGetUser(String name, int age, int sleep) {
         System.out.println(String.format("time:%d\tenter asyncGetUser\tthread:%s", System.currentTimeMillis(), Thread.currentThread().getName()));
         //User user = asyncTemplate.submit(() -> getUser(name, age, sleep), User.class);

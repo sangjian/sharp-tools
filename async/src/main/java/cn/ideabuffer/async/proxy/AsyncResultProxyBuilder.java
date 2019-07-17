@@ -17,18 +17,11 @@ import java.lang.reflect.Method;
  * @author sangjian.sj
  * @date 2019/06/18
  */
-public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
+public class AsyncResultProxyBuilder {
 
     private final static Logger logger = LoggerFactory.getLogger(AsyncResultProxyBuilder.class);
 
-    private AsyncFutureTask future;
-
-    public AsyncResultProxyBuilder(AsyncFutureTask future) {
-        this.future = future;
-    }
-
-    @Override
-    public Object buildProxy(Object target) {
+    public static Object buildProxy(Object target, AsyncFutureTask<?> future) {
         if (!(target instanceof Class)) {
             logger.error("target:{} type is not Class", target);
             throw new IllegalArgumentException(
@@ -50,7 +43,7 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
                         enhancer.setSuperclass(returnClass);
                     }
 
-                    enhancer.setCallbackFilter(new AsyncResultCallbackFilter());
+                    enhancer.setCallbackFilter(new AsyncResultCallbackFilter(future));
                     enhancer.setCallbackTypes(
                         new Class[] {AsyncResultInterceptor.class, AsyncProxyResultInterceptor.class,
                             AsyncProxySerializeInterceptor.class, AsyncToStringMethodInterceptor.class});
@@ -64,10 +57,10 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
         Object proxyObject = null;
 
         try {
-            Enhancer.registerCallbacks(proxyClass, new Callback[] {new AsyncResultInterceptor(),
-                new AsyncProxyResultInterceptor(),
+            Enhancer.registerCallbacks(proxyClass, new Callback[] {new AsyncResultInterceptor(future),
+                new AsyncProxyResultInterceptor(future),
                 new AsyncProxySerializeInterceptor(),
-                new AsyncToStringMethodInterceptor()});
+                new AsyncToStringMethodInterceptor(future)});
             proxyObject = AsyncProxyUtils.newInstance(proxyClass);
         } catch (Exception e) {
 
@@ -77,7 +70,13 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
         return proxyObject;
     }
 
-    class AsyncResultCallbackFilter implements CallbackFilter {
+    static class AsyncResultCallbackFilter implements CallbackFilter {
+
+        private AsyncFutureTask<?> future;
+
+        public AsyncResultCallbackFilter(AsyncFutureTask<?> future) {
+            this.future = future;
+        }
 
         @Override
         public int accept(Method method) {
@@ -94,7 +93,13 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
         }
     }
 
-    class AsyncResultInterceptor implements LazyLoader {
+    static class AsyncResultInterceptor implements LazyLoader {
+
+        private AsyncFutureTask<?> future;
+
+        public AsyncResultInterceptor(AsyncFutureTask<?> future) {
+            this.future = future;
+        }
 
         @Override
         public Object loadObject() throws Exception {
@@ -102,7 +107,13 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
         }
     }
 
-    class AsyncToStringMethodInterceptor implements MethodInterceptor {
+    static class AsyncToStringMethodInterceptor implements MethodInterceptor {
+
+        private AsyncFutureTask<?> future;
+
+        public AsyncToStringMethodInterceptor(AsyncFutureTask<?> future) {
+            this.future = future;
+        }
 
         @Override
         public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
@@ -116,7 +127,13 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
         }
     }
 
-    class AsyncProxyResultInterceptor implements MethodInterceptor {
+    static class AsyncProxyResultInterceptor implements MethodInterceptor {
+
+        private AsyncFutureTask<?> future;
+
+        public AsyncProxyResultInterceptor(AsyncFutureTask<?> future) {
+            this.future = future;
+        }
 
         @Override
         public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) {
@@ -139,7 +156,7 @@ public class AsyncResultProxyBuilder implements AsyncProxyBuilder {
         }
     }
 
-    class AsyncProxySerializeInterceptor implements MethodInterceptor {
+    static class AsyncProxySerializeInterceptor implements MethodInterceptor {
 
         @Override
         public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) {

@@ -8,6 +8,7 @@ import cn.ideabuffer.async.test.service.TestPrimitiveService;
 import cn.ideabuffer.async.test.service.TestUserService;
 
 import cn.ideabuffer.async.test.service.impl.TestUserServiceImpl;
+import com.alibaba.fastjson.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -78,7 +79,7 @@ public class AsyncTest {
     public void testAsyncChain() throws InterruptedException, IOException {
         long start = System.currentTimeMillis();
         List<User> list = new ArrayList<>();
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < 1; i++) {
             User user = testUserService.asyncGetUser("sangjian", i, 0);
             list.add(user);
 
@@ -143,12 +144,6 @@ public class AsyncTest {
         User user = testUserService.testTransactional();
         System.out.println("testTransactional finished");
         System.out.println(user);
-    }
-
-    public static void main(String[] args) {
-        for (int i = 103; i < 201; i++) {
-            System.out.print(i + ",");
-        }
     }
 
 }

@@ -86,7 +86,7 @@ public class AsyncTemplate {
             return null;
         }
 
-        return (T)new AsyncResultProxyBuilder(future).buildProxy(returnClass);
+        return (T)AsyncResultProxyBuilder.buildProxy(returnClass, future);
     }
 
     public void execute(Runnable task) {

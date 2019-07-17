@@ -116,7 +116,7 @@ public class AsyncAutoProxyMethodInterceptor implements MethodInterceptor {
             executor.execute(future);
             return null;
         }
-        Object result = new AsyncResultProxyBuilder(future).buildProxy(method.getReturnType());
+        Object result = AsyncResultProxyBuilder.buildProxy(method.getReturnType(), future);
         executor.execute(future);
         return result;
     }
