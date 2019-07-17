@@ -53,7 +53,10 @@ public class AsyncThreadPool extends ThreadPoolExecutor {
     protected void afterExecute(Runnable r, Throwable t) {
         // 清除ThreadLocal信息
         if (r instanceof AsyncFutureTask) {
-            ThreadLocalTransmitter.clear(Thread.currentThread());
+            AsyncFutureTask futureTask = (AsyncFutureTask)r;
+            if(futureTask.isAllowThreadLocalTransfer()) {
+                ThreadLocalTransmitter.clear(Thread.currentThread());
+            }
         }
         super.afterExecute(r, t);
     }

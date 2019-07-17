@@ -6,6 +6,7 @@ import cn.ideabuffer.async.proxy.AsyncProxyUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -43,7 +44,7 @@ public class AsyncProxyCache {
 
         for (Method method : methods) {
             Async annotation = AnnotationUtils.findAnnotation(method, Async.class);
-            if (annotation != null) {
+            if (annotation != null && Modifier.isPublic(method.getModifiers())) {
                 String executorName = annotation.value();
                 if ("".equals(executorName)) {
                     executorName = DEFAULT_EXECUTOR_NAME;

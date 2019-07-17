@@ -14,7 +14,7 @@ public abstract class AsyncThreadFactory implements ThreadFactory {
     @Override
     public final Thread newThread(Runnable r) {
         Thread t = doNewThread(r);
-        AsyncThreadCache.addAsyncThread(t);
+        AsyncThreadCache.addAsyncThread(t.getId());
         return t;
     }
 

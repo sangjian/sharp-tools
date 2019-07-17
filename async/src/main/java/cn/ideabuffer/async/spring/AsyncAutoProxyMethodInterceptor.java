@@ -50,7 +50,7 @@ public class AsyncAutoProxyMethodInterceptor implements MethodInterceptor {
         // 是否允许级联调用
         boolean allowCascade = asyncMethod.isAllowCascade();
 
-        if(!allowCascade && AsyncThreadCache.isAsyncThread(Thread.currentThread())) {
+        if(!allowCascade && AsyncThreadCache.isAsyncThread(Thread.currentThread().getId())) {
             return invocation.proceed();
         }
 

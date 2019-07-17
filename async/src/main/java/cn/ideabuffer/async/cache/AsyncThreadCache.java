@@ -10,20 +10,14 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class AsyncThreadCache {
 
-    private static final Set<Thread> ASYNC_THREAD_SET = Collections.newSetFromMap(new ConcurrentHashMap<>(16));
+    private static final Set<Long> ASYNC_THREAD_SET = Collections.newSetFromMap(new ConcurrentHashMap<>(16));
 
-    public static void addAsyncThread(Thread t) {
-        if(t != null) {
-            ASYNC_THREAD_SET.add(t);
-        }
+    public static void addAsyncThread(long threadId) {
+        ASYNC_THREAD_SET.add(threadId);
     }
 
-    public static boolean isAsyncThread(Thread t) {
-        if(t == null) {
-            return false;
-        }
-
-        return ASYNC_THREAD_SET.contains(t);
+    public static boolean isAsyncThread(long threadId) {
+        return ASYNC_THREAD_SET.contains(threadId);
     }
 
 }
