@@ -1,20 +1,22 @@
 package cn.ideabuffer.async.spring;
 
 import cn.ideabuffer.async.bean.AsyncMethod;
+import cn.ideabuffer.async.cache.AsyncProxyCache;
 import cn.ideabuffer.async.cache.AsyncThreadCache;
 import cn.ideabuffer.async.core.AsyncCallable;
 import cn.ideabuffer.async.core.AsyncExecutor;
 import cn.ideabuffer.async.core.AsyncFutureTask;
 import cn.ideabuffer.async.core.AsyncProxyResultSupport;
 import cn.ideabuffer.async.exception.AsyncException;
-import cn.ideabuffer.async.cache.AsyncProxyCache;
-import cn.ideabuffer.async.proxy.AsyncProxyUtils;
 import cn.ideabuffer.async.proxy.AsyncResultProxyBuilder;
-import cn.ideabuffer.async.util.SpringApplicationContextHolder;
+import cn.ideabuffer.async.util.AsyncProxyUtils;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import java.lang.reflect.Method;
 
@@ -22,55 +24,71 @@ import java.lang.reflect.Method;
  * @author sangjian.sj
  * @date 2019/07/13
  */
-public class AsyncAutoProxyMethodInterceptor implements MethodInterceptor {
+public class AsyncAutoProxyMethodInterceptor implements MethodInterceptor, ApplicationContextAware {
 
     private final Logger logger = LoggerFactory.getLogger(AsyncAutoProxyMethodInterceptor.class);
+
+    private ApplicationContext applicationContext;
 
     public AsyncAutoProxyMethodInterceptor() {
     }
 
     @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+
+    @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
         Object targetObject = invocation.getThis();
+        Object proxiedTarget = AsyncProxyUtils.getTargetObject(targetObject);
+        if(proxiedTarget == null) {
+            return invocation.proceed();
+        }
         Method method = invocation.getMethod();
-        Object[] args = invocation.getArguments();
-        String methodKey = AsyncProxyUtils.genMethodKey(targetObject, method);
+        Method realMethod = proxiedTarget.getClass().getDeclaredMethod(method.getName(), method.getParameterTypes());
+        if(realMethod == null) {
+            return invocation.proceed();
+        }
+        String methodKey = AsyncProxyUtils.genMethodKey(realMethod);
         AsyncMethod proxyMethod = AsyncProxyCache.getProxyMethod(methodKey);
 
-        if(proxyMethod == null) {
+        if (proxyMethod == null) {
             AsyncProxyCache.putAllProxyMethod(targetObject);
             proxyMethod = AsyncProxyCache.getProxyMethod(methodKey);
         }
-        final AsyncMethod asyncMethod = proxyMethod;
+        AsyncMethod asyncMethod = proxyMethod;
 
-        if(asyncMethod == null) {
+        if (asyncMethod == null) {
             return invocation.proceed();
         }
 
         // 是否允许级联调用
         boolean allowCascade = asyncMethod.isAllowCascade();
 
-        if(!allowCascade && AsyncThreadCache.isAsyncThread(Thread.currentThread().getId())) {
+        if (!allowCascade && AsyncThreadCache.isAsyncThread(Thread.currentThread().getId())) {
             return invocation.proceed();
         }
 
-        if (!AsyncProxyUtils.canProxy(method.getReturnType())
-            && !AsyncProxyUtils.isVoid(method.getReturnType())) {
+        if (!AsyncProxyUtils.canProxy(realMethod.getReturnType())
+            && !AsyncProxyUtils.isVoid(realMethod.getReturnType())) {
             return invocation.proceed();
         }
 
         AsyncExecutor executor = asyncMethod.getExecutor();
 
-        if (executor == null && !SpringApplicationContextHolder.containsBean(asyncMethod.getExecutorName())) {
+        if (executor == null && !applicationContext.containsBean(asyncMethod.getExecutorName())) {
+            logger.error("executor[{}] not found on method:[{}#{}]!", asyncMethod.getExecutorName(),
+                method.getDeclaringClass().getName(), method.getName());
             throw new AsyncException(String.format("executor[%s] not found!", asyncMethod.getExecutorName()));
         }
 
-        executor = SpringApplicationContextHolder.getBean(asyncMethod.getExecutorName(), AsyncExecutor.class);
+        executor = applicationContext.getBean(asyncMethod.getExecutorName(), AsyncExecutor.class);
         asyncMethod.setExecutor(executor);
 
         // 如果线程池销毁，则直接执行
         if (executor.isShutdown()) {
-            return method.invoke(targetObject, args);
+            return invocation.proceed();
         }
         // 是否允许ThreadLocal传递
         boolean allowThreadLocalTransfer = asyncMethod.isAllowThreadLocalTransfer();
@@ -100,9 +118,11 @@ public class AsyncAutoProxyMethodInterceptor implements MethodInterceptor {
 
                     return result;
                 } catch (Throwable throwable) {
+                    logger.error("task method:[{}#{}] invoke failed!", realMethod.getDeclaringClass().getName(),
+                        realMethod.getName());
                     throw new AsyncException(String
-                        .format("task method:[%s#%s] invoke failed!", method.getDeclaringClass().getName(),
-                            method.getName()), throwable);
+                        .format("task method:[%s#%s] invoke failed!", realMethod.getDeclaringClass().getName(),
+                            realMethod.getName()), throwable);
                 }
             }
 
@@ -112,11 +132,11 @@ public class AsyncAutoProxyMethodInterceptor implements MethodInterceptor {
             }
         }, allowThreadLocalTransfer);
 
-        if (AsyncProxyUtils.isVoid(method.getReturnType())) {
+        if (AsyncProxyUtils.isVoid(realMethod.getReturnType())) {
             executor.execute(future);
             return null;
         }
-        Object result = AsyncResultProxyBuilder.buildProxy(method.getReturnType(), future);
+        Object result = AsyncResultProxyBuilder.buildProxy(realMethod.getReturnType(), future);
         executor.execute(future);
         return result;
     }

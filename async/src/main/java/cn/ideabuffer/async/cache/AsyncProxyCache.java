@@ -2,11 +2,14 @@ package cn.ideabuffer.async.cache;
 
 import cn.ideabuffer.async.annotation.Async;
 import cn.ideabuffer.async.bean.AsyncMethod;
-import cn.ideabuffer.async.proxy.AsyncProxyUtils;
+import cn.ideabuffer.async.util.AsyncProxyUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -37,10 +40,15 @@ public class AsyncProxyCache {
     }
 
     public static void putAllProxyMethod(Object target) {
-        Method[] methods = AsyncProxyUtils.getOriginClass(target).getDeclaredMethods();
+        Object proxiedObj = AsyncProxyUtils.getTargetObject(target);
+        if(proxiedObj == null) {
+            return;
+        }
+        Method[] methods = proxiedObj.getClass().getDeclaredMethods();
         if (methods == null || methods.length == 0) {
             return;
         }
+
 
         for (Method method : methods) {
             Async annotation = AnnotationUtils.findAnnotation(method, Async.class);
@@ -51,7 +59,7 @@ public class AsyncProxyCache {
                 }
                 AsyncMethod asyncMethod = new AsyncMethod(target, method, annotation.timeout(), executorName, null,
                     annotation.allowThreadLocalTransfer(), annotation.allowCascade());
-                putProxyMethod(AsyncProxyUtils.genMethodKey(target, method), asyncMethod);
+                putProxyMethod(AsyncProxyUtils.genMethodKey(method), asyncMethod);
             }
         }
     }
@@ -64,4 +72,7 @@ public class AsyncProxyCache {
         return PROXY_METHOD_CACHE.get(key);
     }
 
+    public static void main(String[] args) {
+        System.out.println(Arrays.asList(null));
+    }
 }

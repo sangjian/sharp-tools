@@ -15,30 +15,22 @@ import java.util.List;
  */
 public interface TestUserService {
 
-    @Async(allowCascade = false)
     User asyncGetUser(String name, int age, int sleep);
 
-    @Async
     User getUser(String name, int age, int sleep);
 
-    @Async
     User asyncGetUserNull(int sleep);
 
-    @Async
     User getUserPrivate(String name, int age);
 
-    @Async
     User getException();
 
-    @Async
     User asyncGetUser(int sleep);
 
-    @Async
     List<User> getUserList(int sleep) throws InterruptedException;
 
+    @Async(timeout = 1000)
     User getUserTimeout(int sleep);
 
-    @Async
-    @Transactional
     User testTransactional();
 }

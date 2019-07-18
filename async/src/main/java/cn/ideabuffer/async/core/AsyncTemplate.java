@@ -1,6 +1,6 @@
 package cn.ideabuffer.async.core;
 
-import cn.ideabuffer.async.proxy.AsyncProxyUtils;
+import cn.ideabuffer.async.util.AsyncProxyUtils;
 import cn.ideabuffer.async.proxy.AsyncResultProxyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

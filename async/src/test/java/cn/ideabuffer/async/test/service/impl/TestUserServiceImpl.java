@@ -18,7 +18,7 @@ import java.util.List;
  * @author sangjian.sj
  * @date 2019/07/07
  */
-public class TestUserServiceImpl {
+public class TestUserServiceImpl implements TestUserService{
     private static Logger logger = LoggerFactory.getLogger(TestUserServiceImpl.class);
 
     @Resource
@@ -29,8 +29,8 @@ public class TestUserServiceImpl {
 
     private String test;
 
-    //@Override
     @Async
+    @Override
     public User asyncGetUser(String name, int age, int sleep) {
         System.out.println(String.format("time:%d\tenter asyncGetUser\tthread:%s", System.currentTimeMillis(), Thread.currentThread().getName()));
         //User user = asyncTemplate.submit(() -> getUser(name, age, sleep), User.class);
@@ -46,7 +46,8 @@ public class TestUserServiceImpl {
         return user;
     }
 
-    //@Override
+    @Async
+    @Override
     public User getUser(String name, int age, int sleep) {
         try {
 
@@ -58,7 +59,7 @@ public class TestUserServiceImpl {
         return new User(name, age);
     }
 
-    //@Override
+    @Override
     public User asyncGetUserNull(int sleep) {
         logger.info("enter asyncGetUserNull");
 
@@ -70,7 +71,7 @@ public class TestUserServiceImpl {
         return null;
     }
 
-    //@Override
+    @Override
     public User getUserPrivate(String name, int age) {
         System.out.println("getUserPrivate thread:" + Thread.currentThread().getName());
         User user = getAsyncUserPrivate(name, age);
@@ -94,7 +95,7 @@ public class TestUserServiceImpl {
         return new User(name, age);
     }
 
-    //@Override
+    @Override
     public User getException() {
         System.out.println("in getAsyncUserPrivate");
         try {
@@ -105,7 +106,7 @@ public class TestUserServiceImpl {
         throw new NullPointerException("in getException");
     }
 
-    //@Override
+    @Override
     public User asyncGetUser(int sleep) {
         logger.info("enter asyncGetUser");
 
@@ -117,7 +118,7 @@ public class TestUserServiceImpl {
         return new User("sangjian", 29);
     }
 
-    //@Override
+    @Override
     public List<User> getUserList(int sleep) throws InterruptedException {
         if(sleep > 0) {
             Thread.sleep(sleep);
@@ -127,14 +128,16 @@ public class TestUserServiceImpl {
         return list;
     }
 
-    @Async(timeout = 1000)
-    //@Override
+
+    @Transactional
+    @Override
     public User getUserTimeout(int sleep) {
         try {
             Thread.sleep(sleep);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        logger.info("getUserTimeout sleep finished");
         return new User("test", 1);
     }
 

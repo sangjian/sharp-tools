@@ -3,8 +3,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="springApplicationContextHolder" class="cn.ideabuffer.async.util.SpringApplicationContextHolder" />
-    <bean id="asyncAutoProxyMethodInterceptor" class="cn.ideabuffer.async.spring.AsyncAutoProxyMethodInterceptor" depends-on="springApplicationContextHolder"/>
+    <bean id="asyncAutoProxyMethodInterceptor" class="cn.ideabuffer.async.spring.AsyncAutoProxyMethodInterceptor" />
     <bean id="asyncAutoProxyCreator" class="cn.ideabuffer.async.spring.AsyncAutoProxyCreator">
         <property name="asyncAutoProxyMethodInterceptor" ref="asyncAutoProxyMethodInterceptor" />
         <property name="optimize" value="true" />

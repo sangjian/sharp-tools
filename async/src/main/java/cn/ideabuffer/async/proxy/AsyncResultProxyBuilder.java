@@ -4,6 +4,7 @@ import cn.ideabuffer.async.cache.AsyncProxyCache;
 import cn.ideabuffer.async.core.AsyncFutureTask;
 import cn.ideabuffer.async.core.AsyncProxyResultSupport;
 import cn.ideabuffer.async.exception.AsyncException;
+import cn.ideabuffer.async.util.AsyncProxyUtils;
 import net.sf.cglib.proxy.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +44,7 @@ public class AsyncResultProxyBuilder {
                         enhancer.setSuperclass(returnClass);
                     }
 
-                    enhancer.setCallbackFilter(new AsyncResultCallbackFilter(future));
+                    enhancer.setCallbackFilter(new AsyncResultCallbackFilter());
                     enhancer.setCallbackTypes(
                         new Class[] {AsyncResultInterceptor.class, AsyncProxyResultInterceptor.class,
                             AsyncProxySerializeInterceptor.class, AsyncToStringMethodInterceptor.class});
@@ -71,12 +72,6 @@ public class AsyncResultProxyBuilder {
     }
 
     static class AsyncResultCallbackFilter implements CallbackFilter {
-
-        private AsyncFutureTask<?> future;
-
-        public AsyncResultCallbackFilter(AsyncFutureTask<?> future) {
-            this.future = future;
-        }
 
         @Override
         public int accept(Method method) {
@@ -160,7 +155,7 @@ public class AsyncResultProxyBuilder {
 
         @Override
         public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) {
-            return AsyncProxyUtils.getCglibProxyTargetObject(o);
+            return AsyncProxyUtils.getTargetObject(o);
         }
     }
 }

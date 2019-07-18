@@ -38,7 +38,7 @@ public class AsyncTest {
     private final Logger logger = LoggerFactory.getLogger(AsyncTest.class);
 
     @Resource
-    private TestUserServiceImpl testUserService;
+    private TestUserService testUserService;
 
     @Resource
     private TestPrimitiveService testPrimitiveService;

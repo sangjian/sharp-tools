@@ -1,9 +1,12 @@
-package cn.ideabuffer.async.proxy;
+package cn.ideabuffer.async.util;
 
 import cn.ideabuffer.async.core.AsyncFutureTask;
 import cn.ideabuffer.async.core.AsyncProxyResultSupport;
 import cn.ideabuffer.async.exception.AsyncException;
 import net.sf.cglib.core.ReflectUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.util.ClassUtils;
 
@@ -16,6 +19,8 @@ import java.util.Map;
  * @date 2019/06/18
  */
 public class AsyncProxyUtils {
+
+    private static final Logger logger = LoggerFactory.getLogger(AsyncProxyUtils.class);
 
     private static final Map<Class<?>, Object> PRIMITIVE_VALUE_MAP = new HashMap<>(16);
 
@@ -38,12 +43,12 @@ public class AsyncProxyUtils {
         PRIMITIVE_VALUE_MAP.put(long.class, Long.valueOf(0));
     }
 
-    public static Object newInstance(Class type) {
-        Constructor constructor = null;
+    public static Object newInstance(Class<?> type) {
+        Constructor<?> constructor = null;
         Object[] constructorArgs = new Object[0];
         try {
             // 默认的空构造函数
-            constructor = type.getConstructor(new Class[]{});
+            constructor = type.getConstructor();
         } catch (NoSuchMethodException e) {
             // ignore
         }
@@ -101,20 +106,7 @@ public class AsyncProxyUtils {
         }
     }
 
-    public static Class<?> getOriginClass(Object object) {
-        boolean isCglibProxy = false;
-        if (AopUtils.isCglibProxy(object)) {
-            isCglibProxy = true;
-        }
-        if (!isCglibProxy) {
-            isCglibProxy = ClassUtils.isCglibProxy(object);
-        }
-        Class<?> targetClass = object.getClass();
-        if (isCglibProxy) {
-            targetClass = targetClass.getSuperclass();
-        }
-        return targetClass;
-    }
+
 
     public static boolean isVoid(Class cls) {
         if (Void.class.equals(cls)
@@ -137,11 +129,11 @@ public class AsyncProxyUtils {
         return true;
     }
 
-    public static String genMethodKey(Object target, Method method) {
+    public static String genMethodKey(Method method) {
 
         StringBuilder key = new StringBuilder();
 
-        key.append(getOriginClass(target).getName())
+        key.append(method.getDeclaringClass().getName())
             .append("#")
             .append(method.getName());
         Class<?>[] paramTypes = method.getParameterTypes();
@@ -171,17 +163,45 @@ public class AsyncProxyUtils {
         }
     }
 
-    public static Object getCglibProxyTargetObject(Object proxy) {
+    public static Object getTargetObject(Object proxy) {
+        boolean isCglibProxy = false;
+        boolean isJdkDynamicProxy = false;
+        if (AopUtils.isCglibProxy(proxy)) {
+            isCglibProxy = true;
+        }
+        if(AopUtils.isJdkDynamicProxy(proxy)) {
+            isJdkDynamicProxy = true;
+        }
+
+        if(!isCglibProxy && !isJdkDynamicProxy) {
+            return proxy;
+        }
+
+        Object target = null;
+        try {
+            if(proxy instanceof Advised) {
+                target = ((Advised)proxy).getTargetSource().getTarget();
+            } else if(isCglibProxy) {
+                target = getCglibTargetObject(proxy);
+            }
+            if(AopUtils.isJdkDynamicProxy(target) || AopUtils.isJdkDynamicProxy(target)) {
+                return getTargetObject(target);
+            }
+        } catch (Exception e) {
+            logger.error("getTargetObject error.", e);
+        }
+
+        return target;
+    }
+
+    public static Object getCglibTargetObject(Object proxy) {
         try{
             Field h = proxy.getClass().getDeclaredField("CGLIB$CALLBACK_0");
             h.setAccessible(true);
             Object callbackObject = h.get(proxy);
-            Field this0 = callbackObject.getClass().getDeclaredField("this$0");
-            this0.setAccessible(true);
-            Object futureObject = this0.get(callbackObject);
-            Field future = futureObject.getClass().getDeclaredField("future");
-            future.setAccessible(true);
-            return  ((AsyncFutureTask<?>)future.get(futureObject)).getValue();
+            Field futureField = callbackObject.getClass().getDeclaredField("future");
+            futureField.setAccessible(true);
+            return  ((AsyncFutureTask<?>)futureField.get(callbackObject)).getValue();
         } catch(Exception e){
             throw new AsyncException("getCglibProxyTargetObject error", e);
         }

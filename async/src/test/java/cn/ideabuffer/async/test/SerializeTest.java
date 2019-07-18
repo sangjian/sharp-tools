@@ -3,6 +3,7 @@ package cn.ideabuffer.async.test;
 import cn.ideabuffer.async.test.bean.User;
 import cn.ideabuffer.async.test.serialize.*;
 import cn.ideabuffer.async.test.service.TestUserService;
+import cn.ideabuffer.async.test.service.impl.TestUserServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
@@ -21,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 public class SerializeTest {
 
     @Resource
-    private TestUserService testUserService;
+    private TestUserServiceImpl testUserService;
 
     @Test
     public void testJavaSerialize() throws Exception {
