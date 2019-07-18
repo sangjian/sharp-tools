@@ -39,7 +39,12 @@ public class AsyncProxyCache {
         PROXY_METHOD_CACHE.putIfAbsent(key, asyncMethod);
     }
 
+    /**
+     * 注册所有Async方法
+     * @param target
+     */
     public static void putAllProxyMethod(Object target) {
+        // 获取原始对象
         Object proxiedObj = AsyncProxyUtils.getTargetObject(target);
         if(proxiedObj == null) {
             return;
@@ -72,7 +77,4 @@ public class AsyncProxyCache {
         return PROXY_METHOD_CACHE.get(key);
     }
 
-    public static void main(String[] args) {
-        System.out.println(Arrays.asList(null));
-    }
 }

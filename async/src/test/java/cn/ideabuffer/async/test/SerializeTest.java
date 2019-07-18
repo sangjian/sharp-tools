@@ -22,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 public class SerializeTest {
 
     @Resource
-    private TestUserServiceImpl testUserService;
+    private TestUserService testUserService;
 
     @Test
     public void testJavaSerialize() throws Exception {
@@ -48,7 +48,7 @@ public class SerializeTest {
 
     @Test
     public void testFastJsonSerialize() throws Exception {
-        User user = testUserService.asyncGetUser("sangjian", 29, 15000);
+        User user = testUserService.asyncGetUser("sangjian", 29, 5000);
         System.out.println("invoke asyncGetUser finished");
         System.out.println("serialize start");
         byte[] bytes = FastJsonSerializer.serialize(user);

@@ -9,13 +9,9 @@ import cn.ideabuffer.async.exception.AsyncException;
 public class AsyncCallbackProcessor {
 
     public static <T> void doCallback(AsyncCallback<T> callback, AsyncCallbackContext<T> context) {
-        if(callback == null) {
+        if(callback == null || context == null) {
             return;
         }
-        if(context == null) {
-            throw new AsyncException();
-        }
-
         if(context.isSuccess()) {
             callback.onSuccess(context.getResult());
         } else {

@@ -11,6 +11,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.*;
 
@@ -49,7 +50,7 @@ public class AsyncTemplateTest {
     }
 
     @Test
-    public void testNormalReturnTypeCallback() throws InterruptedException {
+    public void testNormalReturnTypeCallback() throws InterruptedException, IOException {
         User user = asyncTemplate.submit(() -> {
             System.out.println("in call");
             Thread.sleep(4000);

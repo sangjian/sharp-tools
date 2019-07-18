@@ -1,6 +1,7 @@
 package cn.ideabuffer.async.core;
 
 /**
+ * 回调接口
  * @author sangjian.sj
  * @date 2019/06/18
  */

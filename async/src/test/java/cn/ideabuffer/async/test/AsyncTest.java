@@ -79,7 +79,7 @@ public class AsyncTest {
     public void testAsyncChain() throws InterruptedException, IOException {
         long start = System.currentTimeMillis();
         List<User> list = new ArrayList<>();
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 1000; i++) {
             User user = testUserService.asyncGetUser("sangjian", i, 0);
             list.add(user);
 

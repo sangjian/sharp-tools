@@ -23,6 +23,6 @@ public interface AsyncProxyResultSupport {
      * 获取异步任务的Future对象
      * @return
      */
-    AsyncFutureTask<Object> _getFuture();
+    AsyncFutureTask<?> _getFuture();
 
 }

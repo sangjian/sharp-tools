@@ -36,6 +36,9 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
 
     private AsyncCallbackContext<T> callbackContext;
 
+    /**
+     * 是否允许ThreadLocal复制
+     */
     private boolean allowThreadLocalTransfer;
 
     public AsyncFutureTask(AsyncCallable<T> callable) {

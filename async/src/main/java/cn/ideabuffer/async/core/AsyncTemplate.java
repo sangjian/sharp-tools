@@ -1,5 +1,6 @@
 package cn.ideabuffer.async.core;
 
+import cn.ideabuffer.async.exception.AsyncException;
 import cn.ideabuffer.async.util.AsyncProxyUtils;
 import cn.ideabuffer.async.proxy.AsyncResultProxyBuilder;
 import org.slf4j.Logger;
@@ -43,8 +44,7 @@ public class AsyncTemplate {
 
     public <T> T submit(Callable<T> task, long timeout, AsyncCallback<T> callback, Class<T> returnClass) {
         if(task == null || returnClass == null) {
-            logger.error("task or returnClass is null");
-            throw new IllegalArgumentException("task or returnClass is null");
+            throw new NullPointerException("task or returnClass should not be null!");
         }
         if(task instanceof AsyncCallable) {
             return submit((AsyncCallable<T>)task, callback, returnClass);
@@ -69,14 +69,15 @@ public class AsyncTemplate {
 
     public <T> T submit(AsyncCallable<T> task, AsyncCallback<T> callback, Class<T> returnClass) {
         if(task == null || returnClass == null) {
-            throw new NullPointerException();
+            throw new NullPointerException("task or returnClass should not be null!");
         }
         if(!AsyncProxyUtils.canProxy(returnClass)
             && !AsyncProxyUtils.isVoid(returnClass)) {
             try {
                 return task.call();
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("submit task error!", e);
+                throw new AsyncException("submit task error!", e);
             }
         }
 

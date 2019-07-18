@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * 异步线程缓存，主要用于级联调用的判断
  * @author sangjian.sj
  * @date 2019/07/14
  */

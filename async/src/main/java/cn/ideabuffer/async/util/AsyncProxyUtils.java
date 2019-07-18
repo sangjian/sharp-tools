@@ -166,7 +166,7 @@ public class AsyncProxyUtils {
     public static Object getTargetObject(Object proxy) {
         boolean isCglibProxy = false;
         boolean isJdkDynamicProxy = false;
-        if (AopUtils.isCglibProxy(proxy)) {
+        if (ClassUtils.isCglibProxy(proxy)) {
             isCglibProxy = true;
         }
         if(AopUtils.isJdkDynamicProxy(proxy)) {

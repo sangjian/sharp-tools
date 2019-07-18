@@ -30,5 +30,9 @@ public @interface Async {
      */
     boolean allowCascade() default false;
 
+    /**
+     * 超时时间（毫秒）
+     * @return
+     */
     long timeout() default 0;
 }

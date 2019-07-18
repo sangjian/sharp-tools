@@ -22,26 +22,20 @@ public class AsyncResultProxyBuilder {
 
     private final static Logger logger = LoggerFactory.getLogger(AsyncResultProxyBuilder.class);
 
-    public static Object buildProxy(Object target, AsyncFutureTask<?> future) {
-        if (!(target instanceof Class)) {
-            logger.error("target:{} type is not Class", target);
-            throw new IllegalArgumentException(
-                String.format("targetType:%s is not Class", target.getClass().getName()));
-        }
-        Class<?> returnClass = (Class)target;
+    public static Object buildProxy(Class<?> target, AsyncFutureTask<?> future) {
 
-        Class<?> proxyClass = AsyncProxyCache.getProxyClass(returnClass.getName());
+        Class<?> proxyClass = AsyncProxyCache.getProxyClass(target.getName());
         if (proxyClass == null) {
             synchronized (AsyncResultProxyBuilder.class) {
-                proxyClass = AsyncProxyCache.getProxyClass(returnClass.getName());
+                proxyClass = AsyncProxyCache.getProxyClass(target.getName());
                 if (proxyClass == null) {
                     Enhancer enhancer = new Enhancer();
-                    if (returnClass.isInterface()) {
+                    if (target.isInterface()) {
                         enhancer.setInterfaces(
-                            new Class[] {AsyncProxyResultSupport.class, returnClass, AsyncSerializable.class});
+                            new Class[] {AsyncProxyResultSupport.class, target, AsyncSerializable.class});
                     } else {
                         enhancer.setInterfaces(new Class[] {AsyncProxyResultSupport.class, AsyncSerializable.class});
-                        enhancer.setSuperclass(returnClass);
+                        enhancer.setSuperclass(target);
                     }
 
                     enhancer.setCallbackFilter(new AsyncResultCallbackFilter());
@@ -49,13 +43,13 @@ public class AsyncResultProxyBuilder {
                         new Class[] {AsyncResultInterceptor.class, AsyncProxyResultInterceptor.class,
                             AsyncProxySerializeInterceptor.class, AsyncToStringMethodInterceptor.class});
                     proxyClass = enhancer.createClass();
-                    logger.debug("create result proxy class:{}, proxyClass:{}", returnClass, proxyClass);
-                    AsyncProxyCache.putProxyClass(returnClass.getName(), proxyClass);
+                    logger.info("create result proxy class:{}, proxyClass:{}", target, proxyClass);
+                    AsyncProxyCache.putProxyClass(target.getName(), proxyClass);
                 }
             }
         }
 
-        Object proxyObject = null;
+        Object proxyObject;
 
         try {
             Enhancer.registerCallbacks(proxyClass, new Callback[] {new AsyncResultInterceptor(future),
@@ -63,8 +57,6 @@ public class AsyncResultProxyBuilder {
                 new AsyncProxySerializeInterceptor(),
                 new AsyncToStringMethodInterceptor(future)});
             proxyObject = AsyncProxyUtils.newInstance(proxyClass);
-        } catch (Exception e) {
-
         } finally {
             Enhancer.registerStaticCallbacks(proxyClass, null);
         }
@@ -114,8 +106,6 @@ public class AsyncResultProxyBuilder {
         public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
             Object value = future.getValue();
             if (value != null) {
-                logger.info("in toString interceptor, valueClass:{}, thread:{}", value.getClass().getName(),
-                    Thread.currentThread().getName());
                 return value.toString();
             }
             return null;
