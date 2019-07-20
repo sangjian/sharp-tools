@@ -78,13 +78,13 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
         if (callback != null) {
             this.callback = callback;
         }
+        // 从当前 ThreadLocal 备份
+        this.rpcContext = EagleEye.getRpcContext();
 
         if(this.allowThreadLocalTransfer) {
             callerThreadLocalMap = ThreadLocalTransmitter.getThreadLocalMap(this.callerThread);
             callerInheritableThreadLocalMap = ThreadLocalTransmitter.getInheritableThreadLocalMap(this.callerThread);
         }
-        // 从当前 ThreadLocal 备份
-        this.rpcContext = EagleEye.getRpcContext();
     }
 
     @Override
