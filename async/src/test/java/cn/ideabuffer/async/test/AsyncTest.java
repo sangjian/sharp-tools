@@ -57,6 +57,7 @@ public class AsyncTest {
         logger.debug("after invoke getUser");
         logger.debug("async invoke getUser cost:{}", System.currentTimeMillis() - start);
         logger.debug("user1:{}", user1);
+        logger.debug("user1:{}", user1);
         //logger.debug("user2:{}", user2);
         logger.debug("total cost:{}", System.currentTimeMillis() - start);
     }

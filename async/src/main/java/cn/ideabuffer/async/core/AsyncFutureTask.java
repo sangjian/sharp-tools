@@ -1,6 +1,8 @@
 package cn.ideabuffer.async.core;
 
 import cn.ideabuffer.async.exception.AsyncException;
+import com.taobao.eagleeye.EagleEye;
+import com.taobao.eagleeye.RpcContext_inner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +43,21 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
      */
     private boolean allowThreadLocalTransfer;
 
+    /**
+     * Eagleeye上下文
+     */
+    private RpcContext_inner rpcContext;
+
+    /**
+     * 调用线程ThreadLocalMap
+     */
+    private Object callerThreadLocalMap;
+
+    /**
+     * 调用线程InheritableThreadLocalMap
+     */
+    private Object callerInheritableThreadLocalMap;
+
     public AsyncFutureTask(AsyncCallable<T> callable) {
         this(callable, false, null);
     }
@@ -61,10 +78,23 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
         if (callback != null) {
             this.callback = callback;
         }
+        // 从当前 ThreadLocal 备份
+        this.rpcContext = EagleEye.getRpcContext();
+
+        if(this.allowThreadLocalTransfer) {
+            callerThreadLocalMap = ThreadLocalTransmitter.getThreadLocalMap(this.callerThread);
+            callerInheritableThreadLocalMap = ThreadLocalTransmitter.getInheritableThreadLocalMap(this.callerThread);
+        }
     }
 
     @Override
     protected void done() {
+        // 务必清理 ThreadLocal 的上下文，避免异步线程复用时出现上下文互串的问题
+        EagleEye.clearRpcContext();
+
+        if(this.allowThreadLocalTransfer) {
+            ThreadLocalTransmitter.clear(this.runnerThread);
+        }
 
         if(shouldCallback()) {
             try {
@@ -81,6 +111,11 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
     @Override
     public void run() {
         this.runnerThread = Thread.currentThread();
+        // 还原到 ThreadLocal
+        EagleEye.setRpcContext(rpcContext);
+        if(this.allowThreadLocalTransfer) {
+            ThreadLocalTransmitter.copy(this.callerThread, this.runnerThread);
+        }
         super.run();
     }
 

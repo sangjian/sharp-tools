@@ -19,6 +19,14 @@ public class ThreadLocalTransmitter {
         ReflectionUtils.makeAccessible(INHERITABLE_THREAD_LOCAL_FIELD);
     }
 
+    public static Object getThreadLocalMap(Thread thread) {
+        return ReflectionUtils.getField(THREAD_LOCAL_FIELD, thread);
+    }
+
+    public static Object getInheritableThreadLocalMap(Thread thread) {
+        return ReflectionUtils.getField(INHERITABLE_THREAD_LOCAL_FIELD, thread);
+    }
+
     public static void copy(Thread caller, Thread runner) {
         if (caller == null || runner == null) {
             return;
@@ -30,7 +38,7 @@ public class ThreadLocalTransmitter {
             }
 
             Object callerInheritableThreadLocalMap = ReflectionUtils.getField(INHERITABLE_THREAD_LOCAL_FIELD, caller);
-            if (callerThreadLocalMap != null) {
+            if (callerInheritableThreadLocalMap != null) {
                 ReflectionUtils.setField(INHERITABLE_THREAD_LOCAL_FIELD, runner, callerInheritableThreadLocalMap);
             }
         }

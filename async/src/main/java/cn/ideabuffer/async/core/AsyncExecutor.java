@@ -149,6 +149,12 @@ public class AsyncExecutor implements InitializingBean, DisposableBean {
     }
 
     public void execute(Runnable task, long timeout, AsyncCallback<Void> callback) {
+
+        if(task instanceof AsyncFutureTask) {
+            threadPoolExecutor.execute(task);
+            return;
+        }
+
         AsyncCallable<Void> callable = new AsyncCallable<Void>() {
             @Override
             public Void call() throws Exception {
