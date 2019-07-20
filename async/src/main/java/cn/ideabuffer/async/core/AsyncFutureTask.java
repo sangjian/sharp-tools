@@ -78,13 +78,13 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
         if (callback != null) {
             this.callback = callback;
         }
-        // 从当前 ThreadLocal 备份
-        this.rpcContext = EagleEye.getRpcContext();
 
         if(this.allowThreadLocalTransfer) {
             callerThreadLocalMap = ThreadLocalTransmitter.getThreadLocalMap(this.callerThread);
             callerInheritableThreadLocalMap = ThreadLocalTransmitter.getInheritableThreadLocalMap(this.callerThread);
         }
+        // 从当前 ThreadLocal 备份
+        this.rpcContext = EagleEye.getRpcContext();
     }
 
     @Override
@@ -114,7 +114,8 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
         // 还原到 ThreadLocal
         EagleEye.setRpcContext(rpcContext);
         if(this.allowThreadLocalTransfer) {
-            ThreadLocalTransmitter.copy(this.callerThread, this.runnerThread);
+            ThreadLocalTransmitter.setThreadLocalMap(this.callerThreadLocalMap, this.runnerThread);
+            ThreadLocalTransmitter.setInheritableThreadLocalMap(this.callerInheritableThreadLocalMap, this.runnerThread);
         }
         super.run();
     }
