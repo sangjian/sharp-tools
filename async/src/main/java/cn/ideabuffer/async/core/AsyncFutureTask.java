@@ -111,12 +111,12 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
     @Override
     public void run() {
         this.runnerThread = Thread.currentThread();
-        // 还原到 ThreadLocal
-        EagleEye.setRpcContext(rpcContext);
         if(this.allowThreadLocalTransfer) {
             ThreadLocalTransmitter.setThreadLocalMap(this.callerThreadLocalMap, this.runnerThread);
             ThreadLocalTransmitter.setInheritableThreadLocalMap(this.callerInheritableThreadLocalMap, this.runnerThread);
         }
+        // 还原到 ThreadLocal
+        EagleEye.setRpcContext(rpcContext);
         super.run();
     }
 
