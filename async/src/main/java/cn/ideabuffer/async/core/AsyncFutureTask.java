@@ -90,7 +90,10 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
     @Override
     protected void done() {
         // 务必清理 ThreadLocal 的上下文，避免异步线程复用时出现上下文互串的问题
-        EagleEye.clearRpcContext();
+        // 如果执行了callerRun，则不清除
+        if(callerThread != runnerThread) {
+            EagleEye.clearRpcContext();
+        }
 
         if(this.allowThreadLocalTransfer) {
             ThreadLocalTransmitter.clear(this.runnerThread);
