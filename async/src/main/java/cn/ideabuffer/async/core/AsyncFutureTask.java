@@ -95,7 +95,7 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
             EagleEye.clearRpcContext();
         }
 
-        if(this.allowThreadLocalTransfer) {
+        if(this.allowThreadLocalTransfer && callerThread != runnerThread) {
             ThreadLocalTransmitter.clear(this.runnerThread);
         }
 
@@ -114,7 +114,7 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
     @Override
     public void run() {
         this.runnerThread = Thread.currentThread();
-        if(this.allowThreadLocalTransfer) {
+        if(this.allowThreadLocalTransfer && callerThread != runnerThread) {
             ThreadLocalTransmitter.setThreadLocalMap(this.callerThreadLocalMap, this.runnerThread);
             ThreadLocalTransmitter.setInheritableThreadLocalMap(this.callerInheritableThreadLocalMap, this.runnerThread);
         }
