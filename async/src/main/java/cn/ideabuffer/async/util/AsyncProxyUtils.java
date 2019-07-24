@@ -155,7 +155,7 @@ public class AsyncProxyUtils {
         }
     }
 
-    public static <T> T getOriginResult(Object returnObj, Class<T> returnClass) throws AsyncException {
+    public static <T> T getOriginResult(Object returnObj) throws AsyncException {
         if (returnObj instanceof AsyncProxyResultSupport) {
             return (T)((AsyncProxyResultSupport)returnObj)._getResult();
         } else {
