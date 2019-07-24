@@ -1,5 +1,8 @@
 package cn.ideabuffer.async.core;
 
+import com.taobao.eagleeye.EagleEye;
+import com.taobao.eagleeye.RpcContext_inner;
+
 import java.util.concurrent.*;
 
 /**
@@ -28,7 +31,46 @@ public class AsyncThreadPool extends ThreadPoolExecutor {
 
     @Override
     public void execute(Runnable command) {
-        super.execute(command);
+        RpcContext_inner rpcContext = EagleEye.getRpcContext();
+        Thread callerThread = Thread.currentThread();
+        boolean isAllowThreadLocalTransfer = false;
+        if(command instanceof AsyncFutureTask) {
+            AsyncFutureTask task = (AsyncFutureTask)command;
+            isAllowThreadLocalTransfer = task.isAllowThreadLocalTransfer();
+        }
+
+        final boolean allowThreadLocalTransfer = isAllowThreadLocalTransfer;
+
+        super.execute(() -> {
+            Thread runnerThread = Thread.currentThread();
+            try {
+                if(callerThread != runnerThread && rpcContext != null) {
+                    EagleEye.setRpcContext(rpcContext);
+                }
+                // 复制ThreadLocal
+                if(allowThreadLocalTransfer && callerThread != runnerThread) {
+                    // 调用线程ThreadLocalMap
+                    Object callerThreadLocalMap = ThreadLocalTransmitter.getThreadLocalMap(callerThread);
+                    // 调用线程InheritableThreadLocalMap
+                    Object callerInheritableThreadLocalMap = ThreadLocalTransmitter.getInheritableThreadLocalMap(callerThread);
+                    ThreadLocalTransmitter.setThreadLocalMap(callerThreadLocalMap, runnerThread);
+                    ThreadLocalTransmitter.setInheritableThreadLocalMap(callerInheritableThreadLocalMap, runnerThread);
+                }
+
+                command.run();
+            } finally {
+                // 务必清理 ThreadLocal 的上下文，避免异步线程复用时出现上下文互串的问题
+                // 如果执行了callerRun，则不清除
+                if(callerThread != runnerThread) {
+                    EagleEye.clearRpcContext();
+                }
+                // 清理ThreadLocal
+                if(allowThreadLocalTransfer && callerThread != runnerThread) {
+                    ThreadLocalTransmitter.clear(runnerThread);
+                }
+            }
+
+        });
     }
 
     @Override
