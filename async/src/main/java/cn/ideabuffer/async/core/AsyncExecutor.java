@@ -1,5 +1,7 @@
 package cn.ideabuffer.async.core;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
@@ -12,6 +14,8 @@ import java.util.concurrent.*;
  * @date 2019/06/18
  */
 public class AsyncExecutor implements InitializingBean, DisposableBean {
+
+    private static final Logger logger = LoggerFactory.getLogger(AsyncExecutor.class);
 
     private static final int DEFAULT_KEEP_ALIVE_SECONDES = 60;
 
@@ -313,8 +317,15 @@ public class AsyncExecutor implements InitializingBean, DisposableBean {
         @Override
         public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
             if (!e.isShutdown()) {
-                System.out.println(String.format("time%d\t in rejectedExecution\t\t thread:%s", System.currentTimeMillis(), Thread.currentThread().getName()));
+                if(r instanceof CallerRunDecoratedTask) {
+                    CallerRunDecoratedTask task = (CallerRunDecoratedTask)r;
+                    task.setCallerRun(true);
+                }
+
+                logger.info("in rejectedExecution");
+
                 r.run();
+                logger.info("after run");
             }
         }
     }

@@ -42,6 +42,10 @@ public class AsyncTemplate {
         return submit(task, timeout, null, returnClass);
     }
 
+    public <T> T submit(Callable<T> task, AsyncCallback<T> callback, Class<T> returnClass) {
+        return submit(task, 0, callback, returnClass);
+    }
+
     public <T> T submit(Callable<T> task, long timeout, AsyncCallback<T> callback, Class<T> returnClass) {
         if(task == null || returnClass == null) {
             throw new NullPointerException("task or returnClass should not be null!");

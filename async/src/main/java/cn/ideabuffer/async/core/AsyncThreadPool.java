@@ -2,6 +2,8 @@ package cn.ideabuffer.async.core;
 
 import com.taobao.eagleeye.EagleEye;
 import com.taobao.eagleeye.RpcContext_inner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.*;
 
@@ -12,6 +14,7 @@ import java.util.concurrent.*;
  */
 public class AsyncThreadPool extends ThreadPoolExecutor {
 
+    private static final Logger logger = LoggerFactory.getLogger(AsyncThreadPool.class);
 
     public AsyncThreadPool(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
         BlockingQueue<Runnable> workQueue, AsyncThreadFactory threadFactory,
@@ -31,45 +34,73 @@ public class AsyncThreadPool extends ThreadPoolExecutor {
 
     @Override
     public void execute(Runnable command) {
+
+        if(!(command instanceof AsyncFutureTask)) {
+            super.execute(new Runnable() {
+                @Override
+                public void run() {
+                    ThreadLocalTransmitter.clear(Thread.currentThread());
+                    command.run();
+                }
+            });
+            return;
+        }
+
         RpcContext_inner rpcContext = EagleEye.getRpcContext();
         Thread callerThread = Thread.currentThread();
-        boolean isAllowThreadLocalTransfer = false;
-        if(command instanceof AsyncFutureTask) {
-            AsyncFutureTask task = (AsyncFutureTask)command;
-            isAllowThreadLocalTransfer = task.isAllowThreadLocalTransfer();
-        }
+
+        AsyncFutureTask task = (AsyncFutureTask)command;
+        boolean isAllowThreadLocalTransfer = task.isAllowThreadLocalTransfer();
 
         final boolean allowThreadLocalTransfer = isAllowThreadLocalTransfer;
 
-        super.execute(() -> {
-            Thread runnerThread = Thread.currentThread();
-            try {
-                if(callerThread != runnerThread && rpcContext != null) {
-                    EagleEye.setRpcContext(rpcContext);
-                }
-                // 复制ThreadLocal
-                if(allowThreadLocalTransfer && callerThread != runnerThread) {
-                    // 调用线程ThreadLocalMap
-                    Object callerThreadLocalMap = ThreadLocalTransmitter.getThreadLocalMap(callerThread);
-                    // 调用线程InheritableThreadLocalMap
-                    Object callerInheritableThreadLocalMap = ThreadLocalTransmitter.getInheritableThreadLocalMap(callerThread);
-                    ThreadLocalTransmitter.setThreadLocalMap(callerThreadLocalMap, runnerThread);
-                    ThreadLocalTransmitter.setInheritableThreadLocalMap(callerInheritableThreadLocalMap, runnerThread);
-                }
+        Object callerThreadLocalMap = null;
+        Object callerInheritableThreadLocalMap = null;
+        if(allowThreadLocalTransfer) {
+            // 调用线程ThreadLocalMap
+            callerThreadLocalMap = ThreadLocalTransmitter.getThreadLocalMap(callerThread);
+            // 调用线程InheritableThreadLocalMap
+            callerInheritableThreadLocalMap = ThreadLocalTransmitter.getInheritableThreadLocalMap(callerThread);
 
-                command.run();
-            } finally {
-                // 务必清理 ThreadLocal 的上下文，避免异步线程复用时出现上下文互串的问题
-                // 如果执行了callerRun，则不清除
-                if(callerThread != runnerThread) {
-                    EagleEye.clearRpcContext();
-                }
-                // 清理ThreadLocal
-                if(allowThreadLocalTransfer && callerThread != runnerThread) {
-                    ThreadLocalTransmitter.clear(runnerThread);
+        }
+
+        final Object finalCallerThreadLocalMap = callerThreadLocalMap;
+        final Object finalCallerInheritableThreadLocalMap = callerInheritableThreadLocalMap;
+
+
+        super.execute(new CallerRunDecoratedTask(){
+            @Override
+            public void run() {
+                Thread runnerThread = Thread.currentThread();
+                boolean isCallerRun = this.isCallerRun();
+
+                try {
+                    // 复制ThreadLocal
+                    if(allowThreadLocalTransfer && !isCallerRun && finalCallerThreadLocalMap != null && finalCallerInheritableThreadLocalMap != null) {
+                        logger.info("in setThreadLocal, callerThread:{}, finalCallerThreadLocalMap:{}", callerThread.getName(), finalCallerThreadLocalMap);
+                        ThreadLocalTransmitter.setThreadLocalMap(finalCallerThreadLocalMap, runnerThread);
+                        ThreadLocalTransmitter.setInheritableThreadLocalMap(finalCallerInheritableThreadLocalMap, runnerThread);
+                    }
+
+                    if(!isCallerRun) {
+                        EagleEye.setRpcContext(rpcContext);
+                    }
+
+                    command.run();
+                } finally {
+
+                    // 清理ThreadLocal
+                    if(allowThreadLocalTransfer && !isCallerRun) {
+                        logger.info("in threadlocal clear");
+                        ThreadLocalTransmitter.clear(runnerThread);
+                        // 清理 ThreadLocal 的上下文，避免异步线程复用时出现上下文互串的问题
+                        // 如果执行了callerRun，则不清除
+                    } else if(!isCallerRun) {
+                        logger.info("in clearRpcContext, this:{}");
+                        EagleEye.clearRpcContext();
+                    }
                 }
             }
-
         });
     }
 
