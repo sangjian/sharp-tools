@@ -121,7 +121,7 @@ public class AsyncResultProxyBuilder {
         }
 
         @Override
-        public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) {
+        public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Exception {
 
             if ("_isNull".equals(method.getName())) {
                 return future.getValue() == null;

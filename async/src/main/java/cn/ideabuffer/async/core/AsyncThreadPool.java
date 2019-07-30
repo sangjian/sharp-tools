@@ -22,16 +22,6 @@ public class AsyncThreadPool extends ThreadPoolExecutor {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
     }
 
-    public <T> AsyncFutureTask<T> submit(AsyncCallable<T> task) {
-        return submit(task, null);
-    }
-
-    public <T> AsyncFutureTask<T> submit(AsyncCallable<T> task, AsyncCallback<T> callback) {
-        AsyncFutureTask<T> futureTask = new AsyncFutureTask<>(task, callback);
-        execute(futureTask);
-        return futureTask;
-    }
-
     @Override
     public void execute(Runnable command) {
 

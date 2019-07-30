@@ -1,5 +1,7 @@
 package cn.ideabuffer.async.core;
 
+import cn.ideabuffer.async.exception.AsyncExceptionHandler;
+import cn.ideabuffer.async.exception.DefaultAsyncExceptionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -43,6 +45,8 @@ public class AsyncExecutor implements InitializingBean, DisposableBean {
 
     private AsyncThreadPool threadPoolExecutor;
 
+    private AsyncExceptionHandler exceptionHandler;
+
     public AsyncExecutor() {
     }
 
@@ -69,12 +73,18 @@ public class AsyncExecutor implements InitializingBean, DisposableBean {
 
     public AsyncExecutor(int corePoolSize, int maxPoolSize, int keepAliveSeconds, int queueCapacity,
         RejectMode rejectMode, boolean allowCoreThreadTimeOut) {
+        this(corePoolSize, maxPoolSize, queueCapacity, keepAliveSeconds, rejectMode, allowCoreThreadTimeOut, null);
+    }
+
+    public AsyncExecutor(int corePoolSize, int maxPoolSize, int keepAliveSeconds, int queueCapacity,
+        RejectMode rejectMode, boolean allowCoreThreadTimeOut, AsyncExceptionHandler exceptionHandler) {
         this.corePoolSize = corePoolSize;
         this.maxPoolSize = maxPoolSize;
         this.keepAliveSeconds = keepAliveSeconds;
         this.queueCapacity = queueCapacity;
         this.rejectMode = rejectMode;
         this.allowCoreThreadTimeOut = allowCoreThreadTimeOut;
+        this.exceptionHandler = exceptionHandler;
     }
 
     public void init() {
@@ -155,6 +165,7 @@ public class AsyncExecutor implements InitializingBean, DisposableBean {
     public void execute(Runnable task, long timeout, AsyncCallback<Void> callback) {
 
         if(task instanceof AsyncFutureTask) {
+            ((AsyncFutureTask)task).setExceptionHandler(this.exceptionHandler);
             threadPoolExecutor.execute(task);
             return;
         }
@@ -212,7 +223,10 @@ public class AsyncExecutor implements InitializingBean, DisposableBean {
     }
 
     public <T> AsyncFutureTask<T> submit(AsyncCallable<T> task, AsyncCallback<T> callback) {
-        return threadPoolExecutor.submit(task, callback);
+        AsyncFutureTask<T> futureTask = new AsyncFutureTask<>(task, callback);
+        futureTask.setExceptionHandler(this.exceptionHandler);
+        threadPoolExecutor.execute(futureTask);
+        return futureTask;
     }
 
     protected BlockingQueue<Runnable> createQueue(int queueCapacity) {
@@ -273,6 +287,14 @@ public class AsyncExecutor implements InitializingBean, DisposableBean {
 
     public void setAllowCoreThreadTimeOut(boolean allowCoreThreadTimeOut) {
         this.allowCoreThreadTimeOut = allowCoreThreadTimeOut;
+    }
+
+    public AsyncExceptionHandler getExceptionHandler() {
+        return exceptionHandler;
+    }
+
+    public void setExceptionHandler(AsyncExceptionHandler exceptionHandler) {
+        this.exceptionHandler = exceptionHandler;
     }
 
     /**

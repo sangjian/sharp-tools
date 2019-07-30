@@ -98,7 +98,7 @@ public class AsyncAutoProxyMethodInterceptor implements MethodInterceptor, Appli
         AsyncFutureTask<Object> future = new AsyncFutureTask<>(new AsyncCallable<Object>() {
 
             @Override
-            public Object call() {
+            public Object call() throws Exception{
                 try {
                     Object result = invocation.proceed();
                     // 如果返回的结果是代理对象，需要等待代理对象对应的任务执行完
@@ -120,9 +120,13 @@ public class AsyncAutoProxyMethodInterceptor implements MethodInterceptor, Appli
                 } catch (Throwable throwable) {
                     logger.error("task method:[{}#{}] invoke failed!", realMethod.getDeclaringClass().getName(),
                         realMethod.getName());
-                    throw new AsyncException(String
-                        .format("task method:[%s#%s] invoke failed!", realMethod.getDeclaringClass().getName(),
-                            realMethod.getName()), throwable);
+                    if(throwable instanceof Exception) {
+                        throw (Exception)throwable;
+                    } else {
+                        throw new AsyncException(String
+                            .format("task method:[%s#%s] invoke failed!", realMethod.getDeclaringClass().getName(),
+                                realMethod.getName()), throwable);
+                    }
                 }
             }
 
@@ -132,6 +136,8 @@ public class AsyncAutoProxyMethodInterceptor implements MethodInterceptor, Appli
             }
         }, allowThreadLocalTransfer);
 
+        future.setMethod(realMethod);
+        future.setParams(invocation.getArguments());
         if (AsyncProxyUtils.isVoid(realMethod.getReturnType())) {
             executor.execute(future);
             return null;

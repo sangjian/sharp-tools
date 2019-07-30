@@ -1,9 +1,11 @@
 package cn.ideabuffer.async.core;
 
 import cn.ideabuffer.async.exception.AsyncException;
+import cn.ideabuffer.async.exception.AsyncExceptionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Method;
 import java.util.concurrent.*;
 
 /**
@@ -36,10 +38,16 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
 
     private AsyncCallbackContext<T> callbackContext;
 
+    private AsyncExceptionHandler exceptionHandler;
+
     /**
      * 是否允许ThreadLocal复制
      */
     private boolean allowThreadLocalTransfer;
+
+    private Method method;
+
+    private Object[] params;
 
     public AsyncFutureTask(AsyncCallable<T> callable) {
         this(callable, false, null);
@@ -83,13 +91,13 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
         super.run();
     }
 
-    public T getValue() {
+    public T getValue() throws Exception {
         startTime = System.currentTimeMillis();
         if (shouldCallback()) {
             callbackContext = new AsyncCallbackContext<T>();
             callbackContext.setSuccess(false);
         }
-        Throwable throwable = null;
+        Exception throwable = null;
         try {
 
             if (timeout <= 0) {
@@ -117,8 +125,12 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
             }
         }
         if(throwable != null) {
-            logger.error("getValue encountered problem!", throwable);
-            throw new AsyncException("getValue encountered problem!", throwable);
+            if(this.exceptionHandler != null) {
+                this.exceptionHandler.handleException(throwable, method, params);
+            } else {
+                logger.error("getValue encountered problem!", throwable);
+                throw new AsyncException("getValue encountered problem!", throwable);
+            }
         }
 
         return value;
@@ -142,5 +154,29 @@ public class AsyncFutureTask<T> extends FutureTask<T> {
 
     public void setAllowThreadLocalTransfer(boolean allowThreadLocalTransfer) {
         this.allowThreadLocalTransfer = allowThreadLocalTransfer;
+    }
+
+    public AsyncExceptionHandler getExceptionHandler() {
+        return exceptionHandler;
+    }
+
+    public void setExceptionHandler(AsyncExceptionHandler exceptionHandler) {
+        this.exceptionHandler = exceptionHandler;
+    }
+
+    public Method getMethod() {
+        return method;
+    }
+
+    public void setMethod(Method method) {
+        this.method = method;
+    }
+
+    public Object[] getParams() {
+        return params;
+    }
+
+    public void setParams(Object[] params) {
+        this.params = params;
     }
 }
